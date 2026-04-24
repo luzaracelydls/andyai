@@ -25,7 +25,7 @@
     );
     --gradient-lipstick: linear-gradient(
     165.72deg,
-    #b33e7c 21.15%, //f7bdf8
+    #b33e7c 21.15%, /* #f7bdf8 */
     #cd237f 81.93%
     );
     --gradient-purple-haze: linear-gradient(

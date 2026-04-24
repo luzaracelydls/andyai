@@ -60,7 +60,6 @@ Basic art principles:
       },
     },
   });
-  console.log(response.text);
   return JSON.parse(response.text!) as Challenge & { imagePrompts: string[], complexity: string };
 };
 

@@ -22,9 +22,6 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ preferences, setPrefer
     }
   };
 
-  const [isActive, setIsActive] = useState(false); 
- 
-
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <h2 className="text-3xl font-bold text-center">Welcome to Andy AI Mentor🎨</h2>

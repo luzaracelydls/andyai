@@ -17,10 +17,12 @@ app.use(express.json({limit: process?.env?.API_PAYLOAD_MAX_SIZE || "7mb"}));
 const PORT = process?.env?.API_BACKEND_PORT || 5000;
 const API_BACKEND_HOST = process?.env?.API_BACKEND_HOST || "127.0.0.1";
 
+const MY_ENGINE_ID = process?.env?.MY_ENGINE_ID;
+
 const GOOGLE_CLOUD_LOCATION = process?.env?.GOOGLE_CLOUD_LOCATION;
 const GOOGLE_CLOUD_PROJECT = process?.env?.GOOGLE_CLOUD_PROJECT;
-if (!GOOGLE_CLOUD_PROJECT || !GOOGLE_CLOUD_LOCATION) {
-  console.error("Error: Environment variables GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION must be set.");
+if (!GOOGLE_CLOUD_PROJECT || !GOOGLE_CLOUD_LOCATION || !MY_ENGINE_ID) {
+  console.error("Error: Environment variables GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION, and MY_ENGINE_ID must be set.");
   process.exit(1);
 }
 const PROXY_HEADER = process?.env?.PROXY_HEADER;
@@ -179,6 +181,83 @@ async function getAccessToken(res) {
   }
 }
 
+async function callGemini(prompt) {
+  const accessToken = await getAccessToken();
+
+  const url = `https://aiplatform.googleapis.com/v1/projects/${GOOGLE_CLOUD_PROJECT}/locations/${GOOGLE_CLOUD_LOCATION}/publishers/google/models/gemini-2.5-flash:generateContent`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }]
+        }
+      ]
+    })
+  });
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text;
+}
+
+async function callReasoningEngine(input) {
+  const accessToken = await getAccessToken();
+
+  const url = `https://${GOOGLE_CLOUD_LOCATION}-aiplatform.googleapis.com/v1beta1/projects/${GOOGLE_CLOUD_PROJECT}/locations/${GOOGLE_CLOUD_LOCATION}/reasoningEngines/${MY_ENGINE_ID}:query`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      input: {
+        text: input
+      }
+    })
+  });
+
+  return await response.json();
+}
+
+async function runAgentFlow(input) {
+
+
+  const analysis = await callGemini(`
+You are an art analysis agent.
+Return JSON with:
+- level
+- issue
+- suggestion
+- challenge
+
+Input: ${input}
+`);
+
+
+  const verified = await callGemini(`
+You are a verifier agent.
+
+Validate and improve this result:
+${analysis}
+
+Rules:
+- Ensure consistency
+- Ensure challenge matches level
+- Ensure image complies with challenge
+- Be concise and objective to challenge
+`);
+
+  return verified;
+}
+
 function getRequestHeaders(accessToken) {
   return {
     'Authorization': `Bearer ${accessToken}`,
@@ -312,6 +391,17 @@ app.post('/api-proxy', async (req, res) => {
 
 const server = app.listen(PORT, API_BACKEND_HOST, () => {
   console.log(`Vertex AI Backend listening at http://localhost:${PORT}`);
+});
+
+app.post('/api/analyze', async (req, res) => {
+  const result = await runAgentFlow(req.body.input);
+  res.json({ result });
+  
+});
+
+app.post('/api/agent', async (req, res) => {
+  const result = await callReasoningEngine(req.body.input);
+  res.json(result);
 });
 
 

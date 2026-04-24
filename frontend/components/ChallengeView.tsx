@@ -34,7 +34,7 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, onAccep
 
         <div className="px-8 pb-8">
           <h3 className="text-xl font-serif font-semibold text-art-900 mb-4 flex items-center gap-2"><ImageIcon /> Reference Inspiration</h3>
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4 references">
             {challenge.imagePrompts.map((p, i) => (
               <div key={i} className="p-4 bg-art-100 rounded-xl text-sm italic text-art-700">"{p}"</div>
             ))}

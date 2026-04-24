@@ -22,14 +22,17 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ preferences, setPrefer
     }
   };
 
+  const [isActive, setIsActive] = useState(false); 
+ 
+
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <h2 className="text-3xl font-bold text-center">Welcome to Artisan Mentor</h2>
+      <h2 className="text-3xl font-bold text-center">Welcome to Andy AI Mentor🎨</h2>
       
-      <section className="bg-white p-6 rounded-2xl border">
+      <section className="step-1 p-6 rounded-2xl border">
         <h3 className="text-xl font-semibold mb-4">1. How should we start?</h3>
         <div className="grid grid-cols-2 gap-4">
-          <button onClick={() => setShowAssessment(false)} className="p-4 border rounded-xl">Select Level Manually</button>
+          <button onClick={() => setShowAssessment(false)} className={`p-4 border rounded-xl ${!showAssessment  ? 'active' : ''}`}>Select Level Manually</button>
           <button onClick={() => setShowAssessment(true)} className="p-4 border rounded-xl bg-art-50">Upload Work for Assessment</button>
         </div>
       </section>
@@ -45,7 +48,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ preferences, setPrefer
       ) : (
         <div className="grid grid-cols-2 gap-4">
           {Object.values(SkillLevel).map(l => (
-            <button key={l} onClick={() => setPreferences(p => ({...p, level: l}))} className={`p-4 border rounded-xl ${preferences.level === l ? 'bg-art-800 text-white' : ''}`}>{l}</button>
+            <button key={l} onClick={() => {setPreferences(p => ({...p, level: l})); }} className={`p-4 border rounded-xl ${preferences.level === l ? 'bg-art-800 text-white' : ''}`}>{l}</button>
           ))}
         </div>
       )}

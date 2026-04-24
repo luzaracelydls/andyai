@@ -15,6 +15,7 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ evaluation, 
     { key: 'colorTheory', label: 'Color Theory', icon: Palette },
     { key: 'volume', label: 'Volume & Form', icon: Box },
     { key: 'lightingShadow', label: 'Lighting & Shadow', icon: Sun },
+    { key: 'meetsChallenge', Label: 'Challenge passed?', icon: Ruler }
   ];
 
   return (

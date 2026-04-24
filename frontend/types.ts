@@ -32,6 +32,7 @@ export interface Evaluation {
   volume: string;
   lightingShadow: string;
   overallEncouragement: string;
+  meetsChallenge: boolean;
 }
 
 export interface UserPreferences {

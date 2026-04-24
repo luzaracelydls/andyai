@@ -24,7 +24,23 @@ export const generateChallenge = async (
   medium: Medium,
   subject: Subject
 ): Promise<Challenge & { imagePrompts: string[], complexity: string }> => {
-  const prompt = `Create a ${level} level challenge for ${medium} painting of ${subject}. Include 2 descriptive image reference prompts and a specific complexity level label (e.g., Beginner, Moderate, Advanced).`;
+  const artKnowledge = `
+Basic art principles:
+- Rule of thirds improves composition
+- Human proportions: 7-8 heads tall
+- Light must be consistent
+- Avoid tangents in composition
+`;
+
+  const prompt = `
+  Use this art knowledge:
+  
+  ${artKnowledge}
+
+  Create a ${level} level challenge for ${medium} painting of ${subject}. Include 2 descriptive image reference prompts and a specific complexity level label (e.g., Beginner, Moderate, Advanced).`;
+  
+  
+  
   const response = await ai.models.generateContent({
     model: MODEL_NAME,
     contents: prompt,
@@ -44,6 +60,7 @@ export const generateChallenge = async (
       },
     },
   });
+  console.log(response.text);
   return JSON.parse(response.text!) as Challenge & { imagePrompts: string[], complexity: string };
 };
 
@@ -56,7 +73,9 @@ export const evaluateArtwork = async (
 ): Promise<Evaluation & { rating: number }> => {
   const prompt = `Evaluate this ${medium} artwork (${level} level). Challenge: ${challenge.title}. 
   For each point (Proportions, Composition, Color Theory, Volume, Lighting/Shadow), start with 👍, 👏, or 🏆.
-  Provide an overall rating 0-5.`;
+  
+  Provide an overall rating 0-5.
+  Provide a Yes (true) o No (false) answer if user meets challenge expectation`;
   const response = await ai.models.generateContent({
     model: MODEL_NAME,
     contents: {
@@ -77,9 +96,10 @@ export const evaluateArtwork = async (
           volume: { type: Type.STRING },
           lightingShadow: { type: Type.STRING },
           overallEncouragement: { type: Type.STRING },
-          rating: { type: Type.INTEGER }
+          rating: { type: Type.INTEGER },
+          meetsChallenge: {type : Type.BOOLEAN}
         },
-        required: ['proportions', 'composition', 'colorTheory', 'volume', 'lightingShadow', 'overallEncouragement', 'rating'],
+        required: ['proportions', 'composition', 'colorTheory', 'volume', 'lightingShadow', 'overallEncouragement', 'rating', 'meetsChallenge'],
       },
     },
   });

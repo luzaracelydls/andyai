@@ -17,12 +17,12 @@ app.use(express.json({limit: process?.env?.API_PAYLOAD_MAX_SIZE || "7mb"}));
 const PORT = process?.env?.API_BACKEND_PORT || 5000;
 const API_BACKEND_HOST = process?.env?.API_BACKEND_HOST || "127.0.0.1";
 
-const MY_ENGINE_ID = '6727524072512552960';
+const MY_ENGINE_ID = process?.env?.MY_ENGINE_ID;
 
 const GOOGLE_CLOUD_LOCATION = process?.env?.GOOGLE_CLOUD_LOCATION;
 const GOOGLE_CLOUD_PROJECT = process?.env?.GOOGLE_CLOUD_PROJECT;
-if (!GOOGLE_CLOUD_PROJECT || !GOOGLE_CLOUD_LOCATION) {
-  console.error("Error: Environment variables GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION must be set.");
+if (!GOOGLE_CLOUD_PROJECT || !GOOGLE_CLOUD_LOCATION || !MY_ENGINE_ID) {
+  console.error("Error: Environment variables GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION, and MY_ENGINE_ID must be set.");
   process.exit(1);
 }
 const PROXY_HEADER = process?.env?.PROXY_HEADER;

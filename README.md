@@ -53,7 +53,7 @@ Opcional: si la API no corre en `http://localhost:8000`, copia `frontend/.env.ex
 
 ### 4. Arrancar todo
 
-Con el entorno virtual de Python **activado**, desde la raíz:
+Desde la raíz (no hace falta activar el entorno virtual: el script usa `api/.venv` directamente):
 
 ```bash
 npm run dev
@@ -78,11 +78,20 @@ npm run build --prefix frontend       # build de producción
 |---|---|---|
 | `api/.env` | `GOOGLE_CLOUD_PROJECT` | ID de tu proyecto de Google Cloud (obligatoria) |
 | `api/.env` | `GOOGLE_CLOUD_LOCATION` | Región de Vertex AI (por defecto `us-central1`) |
-| `api/.env` | `ALLOWED_ORIGINS` | Orígenes permitidos por CORS, separados por coma (por defecto `http://localhost:5173`) |
+| `api/.env` | `ALLOWED_ORIGINS` | Orígenes permitidos por CORS, separados por coma (por defecto `http://localhost:5173`; cada `localhost` también permite `127.0.0.1`) |
 | `frontend/.env` | `VITE_API_URL` | URL de la API (por defecto `http://localhost:8000`) |
 
 ## Problemas comunes
 
-- **"No se pudo conectar con la API"**: la API no está corriendo. Revisa la terminal de `npm run dev` y que el entorno virtual esté activado.
-- **"No se pudo generar el reto" / 502**: revisa los logs de la API. Suele ser que falta `GOOGLE_CLOUD_PROJECT` en `api/.env` o que no corriste `gcloud auth application-default login`.
-- **Error de CORS en el navegador**: agrega la URL del frontend a `ALLOWED_ORIGINS`.
+Primero abre http://localhost:8000/health: si responde `{"status":"ok"}`, la API está corriendo.
+
+- **"No se pudo conectar con la API"**: la API no está corriendo o el navegador la bloqueó.
+  - Revisa las líneas `[api]` de la terminal de `npm run dev`.
+  - `Address already in use`: otro proceso usa el puerto 8000. En macOS/Linux: `lsof -i :8000` y `kill <PID>`.
+  - `No se encontró el entorno virtual`: crea `api/.venv` como en el paso 2.
+  - Si /health responde pero la app no, abre la consola del navegador (F12). Un error de CORS significa que la página está en un origen no permitido: ábrela en http://localhost:5173 o agrega su URL a `ALLOWED_ORIGINS`.
+- **"Tu proyecto de Google Cloud no tiene la facturación activada"**: Vertex AI exige billing. Actívalo en https://console.cloud.google.com/billing y espera unos minutos.
+- **"Faltan credenciales de Google Cloud"**: corre `gcloud auth application-default login`.
+- **"Habilita Vertex AI en tu proyecto"**: `gcloud services enable aiplatform.googleapis.com --project <tu-proyecto>`.
+- **"Falta GOOGLE_CLOUD_PROJECT"**: crea `api/.env` a partir de `api/.env.example` y llena el ID del proyecto.
+- **"No se pudo generar el reto" / 502**: error inesperado de Gemini; el detalle aparece en la terminal, en las líneas `[api]` después de `Falló /challenge`.

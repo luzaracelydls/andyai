@@ -1,19 +1,19 @@
 import React from 'react';
-import { Challenge } from '../types.ts';
+import { ChallengeResponse } from '../types.ts';
 import { Target, Lightbulb, ArrowRight, RefreshCw,  Video, Gauge } from 'lucide-react';
 
 interface ChallengeViewProps {
-  challenge: Challenge & { youtubeResults: string[], complexity: string };
+  challenge: ChallengeResponse;
   onAccept: () => void;
   onRegenerate: () => void;
   isLoading: boolean;
 }
 
 
+const youtubeSearchUrl = (query: string) =>
+  `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 
 export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, onAccept, onRegenerate, isLoading }) => {
-  
-  
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500">
     <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-art-100">
@@ -39,17 +39,17 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, onAccep
     <div className="px-8 pb-8">
     <h3 className="text-xl font-serif font-semibold text-art-900 mb-4 flex items-center gap-2"><Video /> Learning Resources</h3>
     <div className="grid sm:grid-cols-2 gap-4 references">
-    {challenge.youtubeQueries.map((p, i) => (
-      <div key={i}>{p}</div>
-      
-      //<div key={i} className="p-4 bg-art-100 rounded-xl text-sm italic text-art-700">"{p}"</div>
+    {challenge.youtubeQueries.map((q, i) => (
+      <a key={i} href={youtubeSearchUrl(q)} target="_blank" rel="noopener noreferrer" className="clickable-card p-4 rounded-xl text-sm">
+        <span className="flex items-center gap-2"><Video className="w-4 h-4" /> {q}</span>
+      </a>
     ))}
     </div>
     </div>
     
     <div className="bg-art-50 p-8 flex justify-between border-t border-art-100">
-    <button onClick={onRegenerate} className="flex items-center gap-2 text-art-600"><RefreshCw className="w-5 h-5" /> Regenerate</button>
-    <button onClick={onAccept} className="flex items-center gap-2 px-8 py-4 rounded-full bg-art-800 font-semibold">Start Painting <ArrowRight /></button>
+    <button onClick={onRegenerate} disabled={isLoading} className="flex items-center gap-2 text-art-600 disabled:opacity-50"><RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} /> Regenerate</button>
+    <button onClick={onAccept} disabled={isLoading} className="disabled:opacity-50 flex items-center gap-2 px-8 py-4 rounded-full bg-art-800 font-semibold">Start Painting <ArrowRight /></button>
     </div>
     </div>
     </div>

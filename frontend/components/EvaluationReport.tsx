@@ -1,22 +1,25 @@
 import React from 'react';
 import { Evaluation } from '../types.ts';
-import { Star, Ruler, LayoutTemplate, Palette, Box, Sun, Heart, RotateCcw } from 'lucide-react';
+import { Star, Ruler, LayoutTemplate, Palette, Box, Sun, RotateCcw, Trophy, Dumbbell } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface EvaluationReportProps {
-  evaluation: Evaluation & { rating: number };
+  evaluation: Evaluation;
   imageUrl: string;
   onRestart: () => void;
 }
 
+type TextCriterion = 'proportions' | 'composition' | 'colorTheory' | 'volume' | 'lightingShadow';
+
 export const EvaluationReport: React.FC<EvaluationReportProps> = ({ evaluation, imageUrl, onRestart }) => {
-  const criteriaList = [
+  const criteriaList: { key: TextCriterion; label: string; icon: LucideIcon }[] = [
     { key: 'proportions', label: 'Proportions', icon: Ruler },
     { key: 'composition', label: 'Composition', icon: LayoutTemplate },
     { key: 'colorTheory', label: 'Color Theory', icon: Palette },
     { key: 'volume', label: 'Volume & Form', icon: Box },
     { key: 'lightingShadow', label: 'Lighting & Shadow', icon: Sun },
-    { key: 'meetsChallenge', Label: 'Challenge passed?', icon: Ruler }
   ];
+  const rating = Math.max(0, Math.min(5, Math.round(evaluation.rating)));
 
   return (
     <div className="max-w-5xl mx-auto pb-12">
@@ -24,14 +27,19 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ evaluation, 
         <h2 className="font-serif text-4xl font-bold text-art-900 mb-4">Studio Critique</h2>
         <div className="flex justify-center gap-1 mb-4">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} className={`w-8 h-8 ${i < evaluation.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+            <Star key={i} className={`w-8 h-8 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
           ))}
+        </div>
+        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold ${evaluation.meetsChallenge ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+          {evaluation.meetsChallenge
+            ? <><Trophy className="w-5 h-5" /> Challenge passed!</>
+            : <><Dumbbell className="w-5 h-5" /> Keep practicing</>}
         </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
-          <img src={imageUrl} className="rounded-3xl shadow-md mb-6" />
+          <img src={imageUrl} alt="Your artwork" className="rounded-3xl shadow-md mb-6" />
           <div className="bg-art-800 p-6 rounded-2xl italic">"{evaluation.overallEncouragement}"</div>
         </div>
         <div className="lg:col-span-2 space-y-4">
@@ -40,7 +48,7 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ evaluation, 
               <div className="p-3 rounded-xl bg-art-100 h-fit"><Icon className="w-6 h-6 text-art-800" /></div>
               <div>
                 <h4 className="text-lg font-semibold text-art-900 mb-2">{label}</h4>
-                <p className="text-art-700">{evaluation[key as keyof Evaluation]}</p>
+                <p className="text-art-700">{evaluation[key]}</p>
               </div>
             </div>
           ))}

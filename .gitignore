@@ -4,3 +4,7 @@ api/.env
 .env.local
 api/.venv/
 __pycache__/
+
+# Frontend
+node_modules/
+frontend/dist/

@@ -1,5 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { Upload, Image as ImageIcon, X, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Upload, X, CheckCircle2 } from 'lucide-react';
+
+// La API acepta ~6 MB en base64, que equivale a ~4 MB de imagen
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
 interface ArtworkUploaderProps {
   onUpload: (base64: string, mimeType: string) => void;
@@ -17,6 +20,13 @@ export const ArtworkUploader: React.FC<ArtworkUploaderProps> = ({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Libera la URL de vista previa cuando cambia o se desmonta el componente
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     setError(null);
@@ -25,6 +35,11 @@ export const ArtworkUploader: React.FC<ArtworkUploaderProps> = ({
 
     if (!file.type.startsWith('image/')) {
       setError('Please select a valid image file.');
+      return;
+    }
+
+    if (file.size > MAX_FILE_BYTES) {
+      setError('The image is too large. Please upload one under 4MB.');
       return;
     }
 
@@ -77,7 +92,7 @@ export const ArtworkUploader: React.FC<ArtworkUploaderProps> = ({
               <Upload className="w-8 h-8 text-art-600" />
             </div>
             <h3 className="text-lg font-semibold text-art-800 mb-1">Click to upload image</h3>
-            <p className="text-sm text-art-500">JPEG, PNG up to 10MB</p>
+            <p className="text-sm text-art-500">JPEG, PNG or WEBP up to 4MB</p>
           </div>
         ) : (
           <div className="space-y-6">

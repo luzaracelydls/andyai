@@ -89,6 +89,7 @@ Primero abre http://localhost:8000/health: si responde `{"status":"ok"}`, la API
   - Revisa las líneas `[api]` de la terminal de `npm run dev`.
   - `Address already in use`: otro proceso usa el puerto 8000. En macOS/Linux: `lsof -i :8000` y `kill <PID>`.
   - `No se encontró el entorno virtual`: crea `api/.venv` como en el paso 2.
+  - `incompatible architecture (have 'arm64', need 'x86_64')` (Mac con Apple Silicon): tu Node es la versión para Intel y corre bajo Rosetta. `npm run dev-api` ya lo detecta y arranca la API como arm64; la solución de fondo es instalar Node para Apple Silicon (`node -p process.arch` debe decir `arm64`). Mientras tanto también puedes correr la API aparte: `cd api && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000`.
   - Si /health responde pero la app no, abre la consola del navegador (F12). Un error de CORS significa que la página está en un origen no permitido: ábrela en http://localhost:5173 o agrega su URL a `ALLOWED_ORIGINS`.
 - **"Tu proyecto de Google Cloud no tiene la facturación activada"**: Vertex AI exige billing. Actívalo en https://console.cloud.google.com/billing y espera unos minutos.
 - **"Faltan credenciales de Google Cloud"**: corre `gcloud auth application-default login`.

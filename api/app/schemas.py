@@ -55,7 +55,7 @@ class AssessResponse(BaseModel):
 
 
 class ChallengeResponse(Challenge):
-    imagePrompts: list[str]
+    youtubeQueries: list[str]
     complexity: str
 
 

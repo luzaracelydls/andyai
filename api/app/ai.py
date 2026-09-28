@@ -48,8 +48,9 @@ Use this art knowledge:
 - Avoid tangents in composition
 
 Create a {level.value} level challenge for {medium.value} painting of {subject.value}.
-Include 2 descriptive image reference prompts and a complexity label
-(e.g., Beginner, Moderate, Advanced)."""
+Include 2 YouTube search queries related to the challenge topic. For example, if the
+challenge is about drawing still life with basic forms, a query could be
+"How to Draw Basic Shapes". Also include a complexity label (Beginner, Moderate, Advanced)."""
 
     response = get_client().models.generate_content(
         model=MODEL_NAME,

@@ -1,1 +1,6 @@
 backend/.env.local
+api/.env
+.env
+.env.local
+api/.venv/
+__pycache__/

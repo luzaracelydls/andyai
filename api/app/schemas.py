@@ -1,5 +1,7 @@
 from enum import Enum
-from pydantic import BaseModel
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 
 class SkillLevel(str, Enum):
@@ -24,9 +26,13 @@ class Subject(str, Enum):
 
 # ---------- Peticiones (lo que manda React) ----------
 
+# ~6 MB de base64 equivalen a ~4.5 MB de imagen
+MAX_IMAGE_BASE64_CHARS = 6_000_000
+
+
 class ImageInput(BaseModel):
-    image_base64: str
-    mime_type: str
+    image_base64: str = Field(min_length=1, max_length=MAX_IMAGE_BASE64_CHARS)
+    mime_type: Literal["image/jpeg", "image/png", "image/webp"]
 
 
 class ChallengeRequest(BaseModel):
@@ -66,5 +72,5 @@ class Evaluation(BaseModel):
     volume: str
     lightingShadow: str
     overallEncouragement: str
-    rating: int
+    rating: int = Field(ge=0, le=5)
     meetsChallenge: bool

@@ -1,3 +1,6 @@
+import sparkleIcon from './assets/sparkle.svg';
+import paletteIcon from './assets/palette.svg';
+
 export enum SkillLevel {
   Newbie = 'Newbie',
   Intermediate = 'Intermediate'
@@ -13,12 +16,12 @@ export enum Medium {
 
 export const skillLevelConfig = {
   [SkillLevel.Newbie]: {
-    icon: '../assets/sparkle.svg',
+    icon: sparkleIcon,
     label: 'Newbie',
     description: 'Just starting your artistic journey? Perfect for beginners!'
   },
   [SkillLevel.Intermediate]: {
-    icon: '../assets/palette.svg',
+    icon: paletteIcon,
     label: 'Intermediate',
     description: 'Ready to refine your skills and tackle more complex challenges'
   }
@@ -38,6 +41,11 @@ export interface Challenge {
   tips: string[];
 }
 
+export interface ChallengeResponse extends Challenge {
+  youtubeQueries: string[];
+  complexity: string;
+}
+
 export interface Evaluation {
   proportions: string;
   composition: string;
@@ -45,6 +53,7 @@ export interface Evaluation {
   volume: string;
   lightingShadow: string;
   overallEncouragement: string;
+  rating: number;
   meetsChallenge: boolean;
 }
 
@@ -54,10 +63,4 @@ export interface UserPreferences {
   subject: Subject | null;
 }
 
-export interface YoutubeVideo{
-  title: string;
-  videoId: string;
-  thumbnailURL: string;
-}
-
-export type AppState = 'setup' | 'assessment' | 'challenge' | 'upload' | 'evaluation';
+export type AppState = 'setup' | 'challenge' | 'upload' | 'evaluation';

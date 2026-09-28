@@ -1,3 +1,4 @@
+import logging
 import os
 
 from dotenv import load_dotenv
@@ -12,13 +13,15 @@ from app.schemas import (
 
 load_dotenv()
 
+logger = logging.getLogger("andy_ai")
+
 app = FastAPI(title="Andy AI API")
 
 app.add_middleware(
     CORSMiddleware,
     # Solo tu frontend, nunca "*" en producción
     allow_origins=os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").split(","),
-    allow_methods=["POST"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -32,7 +35,10 @@ def health():
 def assess(body: ImageInput):
     try:
         level = ai.assess_skill_level(body.image_base64, body.mime_type)
+    except ai.InvalidImageError:
+        raise HTTPException(status_code=400, detail="La imagen no es válida")
     except Exception:
+        logger.exception("Falló /assess")
         raise HTTPException(status_code=502, detail="No se pudo analizar la imagen")
     return AssessResponse(level=level)
 
@@ -42,6 +48,7 @@ def challenge(body: ChallengeRequest):
     try:
         return ai.generate_challenge(body.level, body.medium, body.subject)
     except Exception:
+        logger.exception("Falló /challenge")
         raise HTTPException(status_code=502, detail="No se pudo generar el reto")
 
 
@@ -51,5 +58,8 @@ def evaluate(body: EvaluateRequest):
         return ai.evaluate_artwork(
             body.image_base64, body.mime_type, body.challenge, body.level, body.medium,
         )
+    except ai.InvalidImageError:
+        raise HTTPException(status_code=400, detail="La imagen no es válida")
     except Exception:
+        logger.exception("Falló /evaluate")
         raise HTTPException(status_code=502, detail="No se pudo evaluar la obra")

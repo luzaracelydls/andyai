@@ -1,4 +1,5 @@
 import base64
+import binascii
 import os
 from functools import lru_cache
 
@@ -22,15 +23,31 @@ def get_client() -> genai.Client:
     )
 
 
+class InvalidImageError(ValueError):
+    """La imagen recibida no es base64 válido."""
+
+
 def _image_part(image_base64: str, mime_type: str) -> types.Part:
-    return types.Part.from_bytes(data=base64.b64decode(image_base64), mime_type=mime_type)
+    try:
+        data = base64.b64decode(image_base64, validate=True)
+    except (binascii.Error, ValueError) as e:
+        raise InvalidImageError("La imagen no es base64 válido") from e
+    return types.Part.from_bytes(data=data, mime_type=mime_type)
+
+
+def _parsed(response):
+    # Si Gemini no devolvió JSON que cumpla el esquema, parsed viene en None
+    if response.parsed is None:
+        raise RuntimeError(f"Gemini devolvió una respuesta inválida: {response.text!r}")
+    return response.parsed
 
 
 def assess_skill_level(image_base64: str, mime_type: str) -> SkillLevel:
+    image = _image_part(image_base64, mime_type)  # valida antes de llamar a Gemini
     response = get_client().models.generate_content(
         model=MODEL_NAME,
         contents=[
-            _image_part(image_base64, mime_type),
+            image,
             "Analyze this artwork and determine if the artist is a 'Newbie' "
             "or 'Intermediate' level. Return only the word.",
         ],
@@ -60,7 +77,7 @@ challenge is about drawing still life with basic forms, a query could be
             response_schema=ChallengeResponse,   # ← tu modelo de Pydantic
         ),
     )
-    return response.parsed
+    return _parsed(response)
 
 
 def evaluate_artwork(
@@ -73,12 +90,13 @@ For each point (Proportions, Composition, Color Theory, Volume, Lighting/Shadow)
 start with 👍, 👏, or 🏆. Provide an overall rating 0-5.
 Answer true or false: does the user meet the challenge expectation?"""
 
+    image = _image_part(image_base64, mime_type)  # valida antes de llamar a Gemini
     response = get_client().models.generate_content(
         model=MODEL_NAME,
-        contents=[_image_part(image_base64, mime_type), prompt],
+        contents=[image, prompt],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=Evaluation,
         ),
     )
-    return response.parsed
+    return _parsed(response)

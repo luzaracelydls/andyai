@@ -3,20 +3,33 @@ import { SkillLevel, Medium, Subject, Challenge, Evaluation } from '../types.ts'
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY, vertexai: true });
 const MODEL_NAME = 'gemini-2.5-flash';
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+
+// export const assessSkillLevel = async (base64Image: string, mimeType: string): Promise<SkillLevel> => {
+//   const response = await ai.models.generateContent({
+//     model: MODEL_NAME,
+//     contents: {
+//       role: 'user',
+//       parts: [
+//         { inlineData: { mimeType, data: base64Image } },
+//         { text: "Analyze this artwork and determine if the artist is a 'Newbie' or 'Intermediate' level. Return only the word." }
+//       ]
+//     }
+//   });
+//   const text = response.text?.trim() || 'Newbie';
+//   return text.includes('Intermediate') ? SkillLevel.Intermediate : SkillLevel.Newbie;
+// };
+
 
 export const assessSkillLevel = async (base64Image: string, mimeType: string): Promise<SkillLevel> => {
-  const response = await ai.models.generateContent({
-    model: MODEL_NAME,
-    contents: {
-      role: 'user',
-      parts: [
-        { inlineData: { mimeType, data: base64Image } },
-        { text: "Analyze this artwork and determine if the artist is a 'Newbie' or 'Intermediate' level. Return only the word." }
-      ]
-    }
+  const res = await fetch(`${API_URL}/assess`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image_base64: base64Image, mime_type: mimeType }),
   });
-  const text = response.text?.trim() || 'Newbie';
-  return text.includes('Intermediate') ? SkillLevel.Intermediate : SkillLevel.Newbie;
+  if (!res.ok) throw new Error('Error al analizar la imagen');
+  const data = await res.json();
+  return data.level as SkillLevel;
 };
 
 export const generateChallenge = async (
@@ -37,7 +50,9 @@ Basic art principles:
   
   ${artKnowledge}
 
-  Create a ${level} level challenge for ${medium} painting of ${subject}. Include 2 descriptive image reference prompts and a specific complexity level label (e.g., Beginner, Moderate, Advanced).`;
+  Create a ${level} level challenge for ${medium} painting of ${subject}. 
+  
+  Include 2 Youtube search queries that are related to the topic of the challenge. For example: If challenge is about drawing still life with basic forms, the queries would be something like "How to Draw Basic Shapes" `;
   
   
   
@@ -54,13 +69,16 @@ Basic art principles:
           focusAreas: { type: Type.ARRAY, items: { type: Type.STRING } },
           tips: { type: Type.ARRAY, items: { type: Type.STRING } },
           imagePrompts: { type: Type.ARRAY, items: { type: Type.STRING } },
+          youtubeQueries: { type: Type.ARRAY, items: { type: Type.STRING } },
+          youtubeResults: { type: Type.ARRAY, items: { type: Type.STRING } },
           complexity: { type: Type.STRING, description: 'The complexity level of this specific challenge.' }
         },
-        required: ['title', 'description', 'focusAreas', 'tips', 'imagePrompts', 'complexity'],
+        required: ['title', 'description', 'focusAreas', 'tips', 'imagePrompts', 'youtubeQueries',  'youtubeResults', 'complexity'],
       },
     },
   });
-  return JSON.parse(response.text!) as Challenge & { imagePrompts: string[], complexity: string };
+  console.log(response.text);
+  return JSON.parse(response.text!) as Challenge & { youtubeQueries: string[], youtubeResults: string[], complexity: string };
 };
 
 export const evaluateArtwork = async (

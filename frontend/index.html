@@ -5,242 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Andy</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./styles.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
+                    colors:{
                         art: {
-                            50: '#fdf8f6',
-                            100: '#f2e8e5',
-                            200: '#eaddd7',
-                            300: '#e0cec7',
-                            400: '#d2bab0',
-                            500: '#a18072',
-                            600: '#977669',
-                            700: '#846358',
-                            800: '#43302b',
-                            900: '#2c1e1a',
+                            
                         }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        serif: ['Merriweather', 'serif'],
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="./styles.css"/>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap');
-        :root {
-            --color-shockingly-green: #0ae448;
-            --color-just-black: #0e100f;
-            --color-surface-white: #fffce1;
-            --color-pink: #fec5fb;
-            --color-shockingly-pink: #f100cb;
-            --color-orangey: #ff8709;
-            --color-lilac: #9d95ff;
-            --color-lt-green: #abff84;
-            --color-blue: #00bae2;
-            --color-grey: #191919;
-            --color-grey-dark: #191919;
-            --color-surface75: #bbbaa6;
-            --color-surface50: #7c7c6f;
-            --color-surface25: #42433d;
-            --gradient-macha: linear-gradient(
-            114.41deg,
-            var(--color-shockingly-green) 20.74%,
-            var(--color-lt-green) 65.5%
-            );
-            --gradient-orange-crush: linear-gradient(
-            111.45deg,
-            var(--color-orangey) 19.42%,
-            #f7bdf8 73.08%
-            );
-            --gradient-lipstick: linear-gradient(
-            165.72deg,
-            #f557ab 21.15%, 
-            #c0095b 81.93%
-            );
-            --gradient-purple-haze: linear-gradient(
-            153.58deg,
-            #c481d5 32.25%,
-            #2f3cc0 92.68%
-            );
-            --gradient-skyfall: linear-gradient(
-            131.77deg,
-            #0a157a 30.82%,
-            #15bfe4 81.82%
-            );
-            --gradient-emerald-city: linear-gradient(
-            166.9deg,
-            var(--color-shockingly-green) 53.19%,
-            #0085d0 107.69%
-            );
-            --gradient-summer-fair: linear-gradient(
-            144.02deg,
-            var(--color-blue) 4.56%,
-            var(--color-pink) 72.98%
-            );
-            --color-core-green: #dfffd1;
-            --color-core-green-lt: #f3ffee;
-            --color-core-gradient: radial-gradient(
-            89.08% 84.62% at 16.54% 78.46%,
-            #fbfefa 0%,
-            #c9f6b4 39.58%,
-            #abff84 77.6%,
-            #2fee65 100%
-            );
-            --color-core-button-gradient: linear-gradient(
-            114.41deg,
-            #0ae448 20.74%,
-            #abff84 65.5%
-            );
-            --color-core-heading-gradient: linear-gradient(
-            180deg,
-            #d6ffc3 0%,
-            rgba(214, 255, 195, 0) 100%
-            ),
-            #f3ffee;
-            --color-core-intro-gradient: linear-gradient(
-            144.5deg,
-            #e8ffdd 65.09%,
-            #7dea7b 122.73%
-            ),
-            linear-gradient(311.31deg, #7ef89e 36.08%, #e5ffd9 106.98%);
-            --color-text-purple: #d2ceff;
-            --color-text-purple-lt: #dfdcff;
-            --color-text-gradient: radial-gradient(
-            129.03% 100% at 120.97% 81.45%,
-            #dfdcff 27.08%,
-            #a69eff 100%
-            );
-            --color-svg-tangerine: #ffe3c7;
-            --color-svg-tangerine-lt: #fff0e0;
-            --color-svg-gradient: radial-gradient(
-            70.77% 70.77% at 0% 70.77%,
-            #ffd9b0 0%,
-            #fd9f3b 80.73%,
-            #ff8709 100%
-            );
-            --color-svg-heading-gradient: linear-gradient(
-            180deg,
-            #ffbd77 0%,
-            rgba(254, 197, 251, 0) 100%
-            ),
-            #ffe4c7;
-            --color-ui-blue: #bef3fe;
-            --color-ui-blue-lt: #e1faff;
-            --color-ui-blue-codeblk: #f6feff;
-            --color-ui-text-gradient: linear-gradient(
-            168.89deg,
-            #fec5fb -21.3%,
-            #00bae2 89.88%
-            );
-            --color-ui-code-blocktext-gradient: linear-gradient(
-            142.91deg,
-            #cef6ff 18.75%,
-            #a6efff 54.93%
-            );
-            --color-ui-gradient: radial-gradient(
-            78.77% 78.77% at 71.71% 30.77%,
-            #f0fcff 0%,
-            #9bedff 67.21%,
-            #98ecff 76.04%,
-            #5be1ff 84.9%,
-            #00bae2 94.79%
-            );
-            --color-ui-gradient-background: linear-gradient(
-            137.1deg,
-            #ecfcff 27.5%,
-            #a6efff 94.09%
-            );
-            --color-ui-gradient-flip-background: radial-gradient(
-            140% 190% at 117.54% 131.12%,
-            #f0fcff 0%,
-            #9bedff 25.52%,
-            #98ecff 42.71%,
-            #5be1ff 60.94%,
-            #00bae2 94.79%
-            );
-            --color-scroll-pink: #ffd7fd;
-            --color-scroll-pink-lt: #ffe9fe;
-            --color-scroll-gradient: linear-gradient(
-            317.42deg,
-            #ffe9fe 10.4%,
-            #ff96f9 83.03%
-            );
-            --ease-in: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-            --ease-in-out: cubic-bezier(0.86, 0, 0.07, 1);
-            --ease-out-quart: cubic-bezier(0.175, 0.79, 0.38, 0.905);
-            --ease-in-out-quart: cubic-bezier(0.645, 0.045, 0.355, 1);
-            
-            --dark: var(--color-just-black);
-            --grey-dark: #201f1f;
-            --light: var(--color-surface-white);
-            --mid: #7c7c6f;
-            --grey: var(--color-grey);
-            --gray: var(--color-grey);
-            --green: var(--color-shockingly-green);
-            --green-dark: #0ae448;
-            --green-light: var(--color-lt-green);
-            --blue: var(--color-blue);
-            --purple: var(--color-lilac);
-            --red: #cd237f;
-            --orange: var(--color-orangey);
-            accent-color: var(--color-shockingly-green);
+    
+    <style type="text/tailwind">
+        @theme{
             
             
-        }
-        .hover\:bg-art-50:hover {
-            background-color: #cef6ff !important ;
-        }
-        .border-art-300 {
-            border: none !important;
-            background: linear-gradient(
-            168.89deg,
-            #fec5fb -21.3%,
-            #00bae2 89.88%
-            ) !important;
-        }
-
-        .step-1{
-            border-width: 4px;
-        }
-
-        button:active,
-        button:focus-within,
-        button:visited,
-        button.active{
-            background: var(--color-shockingly-pink) !important;
-        }
-        
-        body {
-            background: var(--color-ui-gradient-flip-background) !important;
-            
-        }
-        
-        .bg-art-800{
-            background-color: var(--color-shockingly-pink) !important; 
-        }
-        
-        .bg-art-50{
-            background-color: var(--color-ui-gradient-flip-background) !important;
-        }
-
-        .text-art-600{
-            color: white !important
-        }
-
-        .bg-art-100{
-            background: var(--gradient-lipstick) !important;
-        }
-        .references .text-art-700 ,
-        .text-art-500{
-            color: white !important
+            :root {
+                --font-size: 16px;
+                --background: #ffffff;
+                --foreground: oklch(0.145 0 0);
+                --card: #ffffff;
+                --card-foreground: oklch(0.145 0 0);
+                --popover: oklch(1 0 0);
+                --popover-foreground: oklch(0.145 0 0);
+                --primary: #030213;
+                --primary-foreground: oklch(1 0 0);
+                --secondary: oklch(0.95 0.0058 264.53);
+                --secondary-foreground: #030213;
+                --muted: #ececf0;
+                --muted-foreground: #717182;
+                --accent: #e9ebef;
+                --accent-foreground: #030213;
+                --destructive: #d4183d;
+                --destructive-foreground: #ffffff;
+                --border: rgba(0, 0, 0, 0.1);
+                --input: transparent;
+                --input-background: #f3f3f5;
+                --switch-background: #cbced4;
+                --font-weight-medium: 500;
+                --font-weight-normal: 400;
+                --ring: oklch(0.708 0 0);
+                --chart-1: oklch(0.646 0.222 41.116);
+                --chart-2: oklch(0.6 0.118 184.704);
+                --chart-3: oklch(0.398 0.07 227.392);
+                --chart-4: oklch(0.828 0.189 84.429);
+                --chart-5: oklch(0.769 0.188 70.08);
+                --radius: 0.625rem;
+                --sidebar: oklch(0.985 0 0);
+                --sidebar-foreground: oklch(0.145 0 0);
+                --sidebar-primary: #030213;
+                --sidebar-primary-foreground: oklch(0.985 0 0);
+                --sidebar-accent: oklch(0.97 0 0);
+                --sidebar-accent-foreground: oklch(0.205 0 0);
+                --sidebar-border: oklch(0.922 0 0);
+                --sidebar-ring: oklch(0.708 0 0);
+            }
         }
     </style>
 </head>

@@ -9,12 +9,13 @@ export const Header: React.FC = () => {
           <div className="bg-art-800 p-2 rounded-lg">
             <Palette className="w-6 h-6 text-art-50" />
           </div>
-          <h1 className="font-serif text-xl font-bold text-art-900 tracking-tight">
+          
+          <h2 className="font-serif text-xl font-bold text-art-900 tracking-tight">
             Andy AI
-          </h1>
+          </h2>
         </div>
         <nav className="hidden sm:block">
-          <p className="text-sm text-art-600 font-medium">Your AI Painting Mentor</p>
+          
         </nav>
       </div>
     </header>

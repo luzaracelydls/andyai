@@ -32,7 +32,7 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ evaluation, 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
           <img src={imageUrl} className="rounded-3xl shadow-md mb-6" />
-          <div className="bg-art-800 text-white p-6 rounded-2xl italic">"{evaluation.overallEncouragement}"</div>
+          <div className="bg-art-800 p-6 rounded-2xl italic">"{evaluation.overallEncouragement}"</div>
         </div>
         <div className="lg:col-span-2 space-y-4">
           {criteriaList.map(({ key, label, icon: Icon }) => (
@@ -44,7 +44,7 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ evaluation, 
               </div>
             </div>
           ))}
-          <button onClick={onRestart} className="mt-8 flex items-center gap-2 px-8 py-4 rounded-full bg-art-800 text-white font-semibold">
+          <button onClick={onRestart} className="mt-8 flex items-center gap-2 px-8 py-4 rounded-full bg-art-800  font-semibold">
             <RotateCcw /> Start New Challenge
           </button>
         </div>

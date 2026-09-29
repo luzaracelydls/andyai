@@ -125,22 +125,31 @@ SUBJECT_LABELS = {
     },
 }
 
-# Gemini tiende a contestar en el idioma del prompt; la instrucción de sistema lo fija
+# Gemini tiende a contestar en el idioma del prompt; la instrucción de sistema lo fija.
+# Se repite la instrucción de idioma (aquí y al inicio de cada prompt) porque Gemini a veces
+# ignora la instrucción de sistema y responde en el otro idioma si no se refuerza.
 SYSTEM_INSTRUCTIONS = {
     Language.es: (
         "Eres Andy, una mentora de pintura para personas que están aprendiendo. "
         "Responde SIEMPRE en español neutro, en todos los campos de texto del JSON, "
-        "aunque los nombres de los campos estén en inglés. Usa un tono cálido, claro y alentador."
+        "aunque los nombres de los campos estén en inglés. Nunca escribas en inglés, sin excepciones. "
+        "Usa un tono cálido, claro y alentador."
     ),
     Language.en: (
         "You are Andy, a painting mentor for people who are learning. "
         "ALWAYS answer in English in every text field of the JSON. "
+        "Never write in Spanish, no exceptions. "
         "Use a warm, clear and encouraging tone."
     ),
 }
 
+LANGUAGE_DIRECTIVES = {
+    Language.es: "IMPORTANTE: responde por completo en español; no uses inglés en ningún campo de texto.\n\n",
+    Language.en: "IMPORTANT: respond entirely in English; do not use Spanish in any text field.\n\n",
+}
+
 CHALLENGE_PROMPTS = {
-    Language.es: """Usa estos principios de arte:
+    Language.es: LANGUAGE_DIRECTIVES[Language.es] + """Usa estos principios de arte:
 - La regla de los tercios mejora la composición
 - Proporciones humanas: 7 a 8 cabezas de alto
 - La luz debe ser consistente
@@ -151,7 +160,7 @@ Incluye 2 búsquedas de YouTube relacionadas con el tema del reto (por ejemplo, 
 con formas básicas: "cómo dibujar formas básicas"); pueden ir en inglés si así se encuentran mejores videos.
 La complejidad debe ser exactamente una de estas: Principiante, Intermedio o Avanzado.
 Escribe el título, la descripción, los puntos a trabajar y los consejos en español.""",
-    Language.en: """Use these art principles:
+    Language.en: LANGUAGE_DIRECTIVES[Language.en] + """Use these art principles:
 - The rule of thirds improves composition
 - Human proportions: 7 to 8 heads tall
 - Light must be consistent
@@ -165,13 +174,13 @@ Write the title, description, focus areas and tips in English.""",
 }
 
 EVALUATION_PROMPTS = {
-    Language.es: """Evalúa esta obra en {medium} de una persona de nivel {level}.
+    Language.es: LANGUAGE_DIRECTIVES[Language.es] + """Evalúa esta obra en {medium} de una persona de nivel {level}.
 El reto era: "{title}".
 Comenta cada criterio (proporciones, composición, teoría del color, volumen y luz y sombra)
 empezando con 👍, 👏 o 🏆, y dale a cada uno un puntaje entero de 0 a 5 en "scores".
 Da una calificación general de 0 a 5 y responde true o false: ¿la obra cumple el reto?
 Escribe toda la retroalimentación en español.""",
-    Language.en: """Evaluate this {medium} artwork by an artist at the {level} level.
+    Language.en: LANGUAGE_DIRECTIVES[Language.en] + """Evaluate this {medium} artwork by an artist at the {level} level.
 The challenge was: "{title}".
 Comment on each criterion (proportions, composition, color theory, volume, lighting and shadow)
 starting with 👍, 👏 or 🏆, and give each one an integer score from 0 to 5 in "scores".

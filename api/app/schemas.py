@@ -17,6 +17,11 @@ class Medium(str, Enum):
     oil = "Oil"
 
 
+class Language(str, Enum):
+    es = "es"
+    en = "en"
+
+
 class Subject(str, Enum):
     single_objects = "Single Objects"
     human_anatomy = "Human Anatomy"
@@ -33,19 +38,26 @@ MAX_IMAGE_BASE64_CHARS = 6_000_000
 class ImageInput(BaseModel):
     image_base64: str = Field(min_length=1, max_length=MAX_IMAGE_BASE64_CHARS)
     mime_type: Literal["image/jpeg", "image/png", "image/webp"]
+    language: Language = Language.es
 
 
 class ChallengeRequest(BaseModel):
     level: SkillLevel
     medium: Medium
     subject: Subject
+    language: Language = Language.es
+
+
+# Las descripciones viajan en el response_schema de Gemini y le recuerdan, campo por campo,
+# que escriba en el idioma que pide la instrucción de sistema
+LANG = "in the language required by the system instruction"
 
 
 class Challenge(BaseModel):
-    title: str
-    description: str
-    focusAreas: list[str]
-    tips: list[str]
+    title: str = Field(description=f"Short, motivating challenge title, {LANG}")
+    description: str = Field(description=f"What to paint and why, {LANG}")
+    focusAreas: list[str] = Field(description=f"Concrete points to practice, {LANG}")
+    tips: list[str] = Field(description=f"Practical tips, {LANG}")
 
 
 class EvaluateRequest(ImageInput):
@@ -61,8 +73,8 @@ class AssessResponse(BaseModel):
 
 
 class ChallengeResponse(Challenge):
-    youtubeQueries: list[str]
-    complexity: str
+    youtubeQueries: list[str] = Field(description="YouTube search queries")
+    complexity: str = Field(description="Difficulty label from the prompt's allowed list")
 
 
 class CriterionScores(BaseModel):
@@ -74,12 +86,12 @@ class CriterionScores(BaseModel):
 
 
 class Evaluation(BaseModel):
-    proportions: str
-    composition: str
-    colorTheory: str
-    volume: str
-    lightingShadow: str
-    overallEncouragement: str
+    proportions: str = Field(description=f"Feedback on proportions, {LANG}")
+    composition: str = Field(description=f"Feedback on composition, {LANG}")
+    colorTheory: str = Field(description=f"Feedback on color theory, {LANG}")
+    volume: str = Field(description=f"Feedback on volume and form, {LANG}")
+    lightingShadow: str = Field(description=f"Feedback on lighting and shadow, {LANG}")
+    overallEncouragement: str = Field(description=f"Closing words of encouragement, {LANG}")
     rating: int = Field(ge=0, le=5)
     scores: CriterionScores
     meetsChallenge: bool

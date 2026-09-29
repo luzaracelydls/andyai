@@ -1,9 +1,11 @@
 import { SkillLevel, Medium, Subject, Challenge, ChallengeResponse, Evaluation } from '../types.ts';
+import { COPY, type Lang } from '../lib/copy.ts';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 // POST a la API y devuelve el JSON; si falla, lanza un Error con el mensaje de la API
-async function post<T>(path: string, body: unknown, fallbackError: string): Promise<T> {
+// (que ya viene en el idioma pedido) o uno propio
+async function post<T>(path: string, body: unknown, lang: Lang, fallbackError: string): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, {
@@ -13,10 +15,7 @@ async function post<T>(path: string, body: unknown, fallbackError: string): Prom
     });
   } catch {
     // fetch falla igual si la API está apagada o si el navegador la bloquea por CORS
-    throw new Error(
-      `No se pudo conectar con la API en ${API_URL}. Revisa que esté corriendo (abre ${API_URL}/health) ` +
-      `y que la página esté abierta en http://localhost:5173.`
-    );
+    throw new Error(COPY[lang].errors.connection(API_URL));
   }
   if (!res.ok) {
     const data = await res.json().catch(() => null);
@@ -26,26 +25,28 @@ async function post<T>(path: string, body: unknown, fallbackError: string): Prom
   return res.json() as Promise<T>;
 }
 
-export const assessSkillLevel = async (base64Image: string, mimeType: string): Promise<SkillLevel> => {
+export const assessSkillLevel = async (base64Image: string, mimeType: string, lang: Lang): Promise<SkillLevel> => {
   const data = await post<{ level: SkillLevel }>(
     '/assess',
-    { image_base64: base64Image, mime_type: mimeType },
-    'Error al analizar la imagen',
+    { image_base64: base64Image, mime_type: mimeType, language: lang },
+    lang,
+    COPY[lang].errors.assess,
   );
   return data.level;
 };
 
 export const generateChallenge = (
-  level: SkillLevel, medium: Medium, subject: Subject
+  level: SkillLevel, medium: Medium, subject: Subject, lang: Lang,
 ): Promise<ChallengeResponse> =>
-  post<ChallengeResponse>('/challenge', { level, medium, subject }, 'Error al generar el reto');
+  post<ChallengeResponse>('/challenge', { level, medium, subject, language: lang }, lang, COPY[lang].errors.challenge);
 
 export const evaluateArtwork = (
   base64Image: string, mimeType: string, challenge: Challenge,
-  level: SkillLevel, medium: Medium
+  level: SkillLevel, medium: Medium, lang: Lang,
 ): Promise<Evaluation> =>
   post<Evaluation>(
     '/evaluate',
-    { image_base64: base64Image, mime_type: mimeType, challenge, level, medium },
-    'Error al evaluar la obra',
+    { image_base64: base64Image, mime_type: mimeType, challenge, level, medium, language: lang },
+    lang,
+    COPY[lang].errors.evaluate,
   );

@@ -1,5 +1,7 @@
 # Andy AI — tu mentora de pintura con IA
 
+Production build: https://project-5e7c0ba0-6c23-409c-a94.web.app/ 
+
 Andy AI ayuda a personas que aprenden a dibujar y pintar:
 
 1. Detecta tu nivel (lo eliges o subes una obra para que la IA lo estime).

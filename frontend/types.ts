@@ -1,6 +1,3 @@
-import sparkleIcon from './assets/sparkle.svg';
-import paletteIcon from './assets/palette.svg';
-
 export enum SkillLevel {
   Newbie = 'Newbie',
   Intermediate = 'Intermediate'
@@ -12,19 +9,6 @@ export enum Medium {
   OilPastels = 'Oil Pastels',
   Watercolor = 'Watercolor',
   Oil = 'Oil'
-}
-
-export const skillLevelConfig = {
-  [SkillLevel.Newbie]: {
-    icon: sparkleIcon,
-    label: 'Newbie',
-    description: 'Just starting your artistic journey? Perfect for beginners!'
-  },
-  [SkillLevel.Intermediate]: {
-    icon: paletteIcon,
-    label: 'Intermediate',
-    description: 'Ready to refine your skills and tackle more complex challenges'
-  }
 }
 
 export enum Subject {
@@ -46,6 +30,14 @@ export interface ChallengeResponse extends Challenge {
   complexity: string;
 }
 
+export interface CriterionScores {
+  proportions: number;
+  composition: number;
+  colorTheory: number;
+  volume: number;
+  lightingShadow: number;
+}
+
 export interface Evaluation {
   proportions: string;
   composition: string;
@@ -54,6 +46,7 @@ export interface Evaluation {
   lightingShadow: string;
   overallEncouragement: string;
   rating: number;
+  scores: CriterionScores;
   meetsChallenge: boolean;
 }
 
@@ -63,4 +56,4 @@ export interface UserPreferences {
   subject: Subject | null;
 }
 
-export type AppState = 'setup' | 'challenge' | 'upload' | 'evaluation';
+export type AppState = 'setup' | 'challenge' | 'upload' | 'evaluation' | 'history';

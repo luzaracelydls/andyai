@@ -1,5 +1,8 @@
 FROM python:3.14-slim
 
+# Logs sin buffer para que aparezcan de inmediato en Cloud Logging
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
 COPY requirements.txt .

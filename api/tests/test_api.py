@@ -209,3 +209,23 @@ def test_evaluate_rechaza_puntaje_de_criterio_fuera_de_rango():
     scores = {**EVALUACION["scores"], "volume": 9}
     with pytest.raises(ValidationError):
         Evaluation(**{**EVALUACION, "scores": scores})
+
+
+def test_cors_para_firebase_hosting(monkeypatch):
+    # En Cloud Run, ALLOWED_ORIGINS trae los dominios de Firebase Hosting; el CORS se
+    # configura al importar app.main, así que se recarga con la variable puesta
+    import importlib
+    import app.main as main_module
+
+    monkeypatch.setenv("ALLOWED_ORIGINS", "https://andy-ai.web.app,https://andy-ai.firebaseapp.com")
+    try:
+        prod_client = TestClient(importlib.reload(main_module).app)
+        preflight = {"Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type"}
+        ok = prod_client.options("/challenge", headers={**preflight, "Origin": "https://andy-ai.web.app"})
+        assert ok.status_code == 200
+        assert ok.headers["access-control-allow-origin"] == "https://andy-ai.web.app"
+        rechazado = prod_client.options("/challenge", headers={**preflight, "Origin": "https://otro-sitio.com"})
+        assert "access-control-allow-origin" not in rechazado.headers
+    finally:
+        monkeypatch.delenv("ALLOWED_ORIGINS")
+        importlib.reload(main_module)

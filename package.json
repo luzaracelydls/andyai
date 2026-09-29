@@ -1,11 +1,15 @@
 {
   "name": "artisan-mentor",
   "private": true,
-  "workspaces": ["frontend"],
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
     "dev-frontend": "npm run dev --prefix frontend",
     "dev-api": "node scripts/dev-api.mjs",
-    "dev": "concurrently -n api,web \"npm run dev-api\" \"npm run dev-frontend\""
+    "dev": "concurrently -n api,web \"npm run dev-api\" \"npm run dev-frontend\"",
+    "deploy:api": "gcloud run deploy andy-ai-api --source api --region us-central1 --allow-unauthenticated",
+    "deploy:web": "npm run build --prefix frontend && cd frontend && npx firebase-tools deploy --only hosting"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

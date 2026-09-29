@@ -1,0 +1,7 @@
+# Lo que `gcloud run deploy --source api` NO debe subir a Cloud Build
+.gcloudignore
+.venv/
+.env
+__pycache__/
+.pytest_cache/
+tests/

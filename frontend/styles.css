@@ -1,90 +1,142 @@
-@import "tailwindcss";
-@import "tw-animate-css";
 
-/* Paleta "estudio de arte": magenta/violeta como color principal sobre papel cálido */
+
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.985 0.006 80);
-  --foreground: oklch(0.2 0.02 300);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.02 300);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.02 300);
-  --primary: oklch(0.52 0.22 320);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.02 320);
-  --secondary-foreground: oklch(0.35 0.12 320);
-  --muted: oklch(0.96 0.008 80);
-  --muted-foreground: oklch(0.5 0.02 300);
-  --accent: oklch(0.94 0.04 320);
-  --accent-foreground: oklch(0.3 0.12 320);
-  --destructive: oklch(0.58 0.22 27);
-  --success: oklch(0.6 0.15 150);
-  --warning: oklch(0.78 0.15 75);
-  --border: oklch(0.91 0.01 300);
-  --input: oklch(0.91 0.01 300);
-  --ring: oklch(0.52 0.22 320);
-  /* Serie única de las gráficas (#9d26b5, validada contra fondo blanco) y rejilla recesiva */
-  --chart-1: oklch(0.52 0.22 320);
-  --chart-grid: oklch(0.93 0.005 300);
+    --font-size: 16px;
+    --background: #ffffff;
+    --foreground: oklch(0.145 0 0);
+    --card: #ffffff;
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: #030213;
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.95 0.0058 264.53);
+    --secondary-foreground: #030213;
+    --muted: #ececf0;
+    --muted-foreground: #717182;
+    --accent: #e9ebef;
+    --accent-foreground: #030213;
+    --destructive: #d4183d;
+    --destructive-foreground: #ffffff;
+    --border: rgba(0, 0, 0, 0.1);
+    --input: transparent;
+    --input-background: #f3f3f5;
+    --switch-background: #cbced4;
+    --font-weight-medium: 500;
+    --font-weight-normal: 400;
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.646 0.222 41.116);
+    --chart-2: oklch(0.6 0.118 184.704);
+    --chart-3: oklch(0.398 0.07 227.392);
+    --chart-4: oklch(0.828 0.189 84.429);
+    --chart-5: oklch(0.769 0.188 70.08);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: #030213;
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
 }
 
-@theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Merriweather", ui-serif, Georgia, serif;
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-grid: var(--chart-grid);
+
+
+.bg-art-800{
+    
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
-    background-image:
-      radial-gradient(60rem 30rem at 100% -10%, oklch(0.93 0.06 320 / 0.6), transparent),
-      radial-gradient(50rem 30rem at -10% 110%, oklch(0.94 0.05 75 / 0.6), transparent);
-    background-attachment: fixed;
-  }
-  h1, h2, h3 {
-    @apply font-serif;
-  }
+.bg-art-50{
+    
 }
 
-/* Insignia de "reto cumplido": aparece con un pequeño rebote */
-@keyframes pop-in {
-  0% { transform: scale(0.6); opacity: 0; }
-  70% { transform: scale(1.08); opacity: 1; }
-  100% { transform: scale(1); }
+.title-1{
+    font-weight: 700;
+    font-size:40px;
 }
-.animate-pop-in {
-  animation: pop-in 0.5s ease-out both;
+
+.clickable-card{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content:space-between;
+    background-color: var(--background);
+    align-items: center;
+    min-height: 80px;
+    border-radius: 16px;
+    box-shadow: 5px 7px 18px 2px rgba(0,0,0,0.42);
+    padding: 1.5rem;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
 }
-@media (prefers-reduced-motion: reduce) {
-  .animate-pop-in { animation: none; }
+
+.clickable-card .circle{
+    position: absolute;
+    
+    width: 140px;
+    height: 140px;
+    
+    top: -60px;
+    right: -60px;
+    
+    border-radius: 50%;
+    
+    background: linear-gradient(
+    135deg,
+    #9cf0ff,
+    #d9e66f
+    );
+    transition: transform 0.3s ease;
+}
+
+.clickable-card:hover{
+    border: solid 3px magenta;
+    transform: translateY(-8px);
+}
+.clickable-card:hover .circle{
+    transform: scale(1.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+.clickable-card:not(.active):hover{
+    background:linear-gradient(55deg,rgba(255, 255, 255, 1) 0%, rgba(247, 255, 250, 1) 32%, rgba(251, 255, 247, 1) 73%, rgba(255, 255, 245, 1) 100%);
+}
+
+.clickable-card.active:hover{
+    background: linear-gradient(90deg,rgba(255, 255, 255, 1) 0%, rgba(247, 255, 250, 1) 50%, rgba(255, 255, 245, 1) 100%);
+}
+
+.clickable-card{
+   
+    background: linear-gradient(90deg,rgba(255, 255, 255, 1) 0%, rgba(247, 255, 250, 1) 50%, rgba(255, 255, 245, 1) 100%);
+    
+}
+.clickable-card.active{
+    border: solid 3px magenta;
+    background:linear-gradient(55deg,rgba(255, 255, 255, 1) 0%, rgba(247, 255, 250, 1) 32%, rgba(251, 255, 247, 1) 73%, rgba(255, 255, 245, 1) 100%);
+}
+
+
+
+.hidden {
+    display: none;
+}
+
+.andy-ai-grid{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.clickable-card:before{
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -10px;
+    width: 60px;
+    height: 60px;
+    border-radius: 9999px;
+    
 }

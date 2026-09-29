@@ -65,14 +65,6 @@ class ChallengeResponse(Challenge):
     complexity: str
 
 
-class CriterionScores(BaseModel):
-    proportions: int = Field(ge=0, le=5)
-    composition: int = Field(ge=0, le=5)
-    colorTheory: int = Field(ge=0, le=5)
-    volume: int = Field(ge=0, le=5)
-    lightingShadow: int = Field(ge=0, le=5)
-
-
 class Evaluation(BaseModel):
     proportions: str
     composition: str
@@ -81,5 +73,4 @@ class Evaluation(BaseModel):
     lightingShadow: str
     overallEncouragement: str
     rating: int = Field(ge=0, le=5)
-    scores: CriterionScores
     meetsChallenge: bool

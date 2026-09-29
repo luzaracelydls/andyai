@@ -97,8 +97,7 @@ Use this art knowledge:
 Create a {level.value} level challenge for {medium.value} painting of {subject.value}.
 Include 2 YouTube search queries related to the challenge topic. For example, if the
 challenge is about drawing still life with basic forms, a query could be
-"How to Draw Basic Shapes". Also include a complexity label (Principiante, Moderado, Avanzado).
-Write every text field in Spanish; the YouTube queries may be in English if that finds better videos."""
+"How to Draw Basic Shapes". Also include a complexity label (Beginner, Moderate, Advanced)."""
 
     response = get_client().models.generate_content(
         model=MODEL_NAME,
@@ -118,10 +117,8 @@ def evaluate_artwork(
     prompt = f"""Evaluate this {medium.value} artwork ({level.value} level).
 Challenge: {challenge.title}.
 For each point (Proportions, Composition, Color Theory, Volume, Lighting/Shadow),
-start with 👍, 👏, or 🏆. Also give each of those five points an integer score
-from 0 to 5 in "scores". Provide an overall rating 0-5.
-Answer true or false: does the user meet the challenge expectation?
-Write all feedback in Spanish, in a warm and encouraging tone."""
+start with 👍, 👏, or 🏆. Provide an overall rating 0-5.
+Answer true or false: does the user meet the challenge expectation?"""
 
     image = _image_part(image_base64, mime_type)  # valida antes de llamar a Gemini
     response = get_client().models.generate_content(

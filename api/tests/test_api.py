@@ -51,7 +51,6 @@ EVALUACION = {
     "lightingShadow": "👍 Bien",
     "overallEncouragement": "¡Sigue así!",
     "rating": 4,
-    "scores": {"proportions": 4, "composition": 5, "colorTheory": 3, "volume": 5, "lightingShadow": 4},
     "meetsChallenge": True,
 }
 
@@ -203,9 +202,3 @@ def test_proyecto_vacio_en_env_devuelve_503(monkeypatch):
     res = client.post("/challenge", json=RETO_REQUEST)
     assert res.status_code == 503
     assert "GOOGLE_CLOUD_PROJECT" in res.json()["detail"]
-
-
-def test_evaluate_rechaza_puntaje_de_criterio_fuera_de_rango():
-    scores = {**EVALUACION["scores"], "volume": 9}
-    with pytest.raises(ValidationError):
-        Evaluation(**{**EVALUACION, "scores": scores})

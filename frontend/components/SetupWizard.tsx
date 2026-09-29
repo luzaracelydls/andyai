@@ -1,125 +1,93 @@
 import React, { useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { ArrowLeft, ArrowRight, Loader2, Upload, Wand2 } from 'lucide-react';
-import { Medium, SkillLevel, Subject, UserPreferences } from '../types.ts';
-import { LEVELS, MEDIUMS, SUBJECTS } from '@/lib/copy';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/lib/utils';
+import { SkillLevel, Medium, Subject, UserPreferences, skillLevelConfig } from '../types.ts';
+import { Upload } from 'lucide-react';
 
 interface SetupWizardProps {
   preferences: UserPreferences;
   setPreferences: React.Dispatch<React.SetStateAction<UserPreferences>>;
   onComplete: () => void;
-  onAssess: (file: File) => void;
-  isAssessing: boolean;
+  onAssess: (base64: string, mimeType: string) => void;
+  isLoading: boolean;
 }
 
-const STEPS = [
-  { key: 'level', title: '¿Cuál es tu nivel?', hint: 'Elige uno o deja que Andy lo estime con una obra tuya.' },
-  { key: 'medium', title: '¿Con qué técnica vas a pintar?', hint: 'El reto se adapta a los materiales que tienes.' },
-  { key: 'subject', title: '¿Qué te gustaría pintar?', hint: 'Escoge el tema de tu próximo reto.' },
-] as const;
+const cardClass = (selected: boolean) => `clickable-card p-4 border rounded-xl ${selected ? 'active' : ''}`;
 
-export const SetupWizard: React.FC<SetupWizardProps> = ({ preferences, setPreferences, onComplete, onAssess, isAssessing }) => {
-  const [step, setStep] = useState(0);
-  const current = STEPS[step];
-  const value = preferences[current.key];
-  const isLast = step === STEPS.length - 1;
+export const SetupWizard: React.FC<SetupWizardProps> = ({ preferences, setPreferences, onComplete, onAssess, isLoading }) => {
+  const [showAssessment, setShowAssessment] = useState(false);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: { 'image/*': [] },
-    maxFiles: 1,
-    disabled: isAssessing,
-    onDropAccepted: files => onAssess(files[0]),
-  });
-
-  // Radix devuelve "" al volver a pulsar la opción elegida: lo ignoramos para no perder la selección
-  const select = (key: keyof UserPreferences) => (v: string) => {
-    if (v) setPreferences(p => ({ ...p, [key]: v }));
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => onAssess(reader.result!.toString().split(',')[1], file.type);
+      reader.readAsDataURL(file);
+    }
   };
 
-  return (
-    <div className="mx-auto max-w-3xl space-y-6 pb-24 sm:pb-0">
-      <div className="space-y-3 text-center">
-        <p className="text-sm font-medium text-primary">Paso {step + 1} de {STEPS.length}</p>
-        <Progress value={((step + 1) / STEPS.length) * 100} aria-label="Progreso de la configuración" />
-        <h1 className="pt-2 text-3xl font-bold sm:text-4xl">{current.title}</h1>
-        <p className="text-muted-foreground">{current.hint}</p>
-      </div>
+  const canContinue = preferences.level && preferences.medium && preferences.subject && !isLoading;
 
-      {current.key === 'level' && (
-        <div className="space-y-4">
-          <ToggleGroup type="single" value={preferences.level ?? ''} onValueChange={select('level')} className="sm:grid-cols-2" aria-label="Nivel">
-            {(Object.keys(LEVELS) as SkillLevel[]).map(l => {
-              const { label, description, icon: Icon } = LEVELS[l];
-              return (
-                <ToggleGroupItem key={l} value={l} className="min-h-36 justify-start pt-6">
-                  <Icon className="size-8 text-primary" />
-                  <span className="text-lg font-semibold">{label}</span>
-                  <span className="text-sm text-muted-foreground">{description}</span>
-                </ToggleGroupItem>
-              );
-            })}
-          </ToggleGroup>
-          <div
-            {...getRootProps()}
-            className={cn(
-              'flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors',
-              isDragActive ? 'border-primary bg-accent' : 'hover:border-primary/50 hover:bg-accent/50',
+  return (
+    <div className="max-w-3xl mx-auto space-y-8">
+      <section className="step-1 p-6 rounded-2xl border">
+        <h3 className="text-xl font-semibold mb-4">1. How should we start?</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <button onClick={() => setShowAssessment(false)} className={cardClass(!showAssessment)}>Select Level Manually</button>
+          <button onClick={() => setShowAssessment(true)} className={cardClass(showAssessment)}>Upload Work for Assessment</button>
+        </div>
+      </section>
+
+      {showAssessment ? (
+        <div className="p-8 border-2 border-dashed rounded-2xl text-center">
+          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFile} disabled={isLoading} className="hidden" id="file-upload" />
+          <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
+            {isLoading ? (
+              <div className="w-12 h-12 mb-2 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+            ) : (
+              <Upload className="w-12 h-12 mb-2" />
             )}
-          >
-            <input {...getInputProps()} aria-label="Sube una obra para estimar tu nivel" />
-            {isAssessing ? <Loader2 className="size-6 animate-spin text-primary" /> : <Wand2 className="size-6 text-primary" />}
-            <p className="font-medium">{isAssessing ? 'Analizando tu obra…' : '¿No sabes tu nivel? Sube una obra y Andy lo estima'}</p>
-            <p className="text-sm text-muted-foreground"><Upload className="inline size-3.5" /> Arrastra una imagen o haz clic</p>
-          </div>
+            <span>{isLoading ? 'Analyzing your work...' : 'Upload a sample of your work'}</span>
+          </label>
+          {preferences.level && !isLoading && (
+            <p className="mt-4 font-semibold">Detected level: {preferences.level}</p>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          {Object.values(SkillLevel).map(l => {
+            const config = skillLevelConfig[l];
+            return (
+              <button key={l} onClick={() => setPreferences(p => ({ ...p, level: l }))} className={cardClass(preferences.level === l)}>
+                <div className="circle"></div>
+                <img src={config.icon} alt={config.label} width="50" height="50" />
+                <span className="title-1">{l}</span>
+                <p>{config.description}</p>
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {current.key === 'medium' && (
-        <ToggleGroup type="single" value={preferences.medium ?? ''} onValueChange={select('medium')} className="grid-cols-2 sm:grid-cols-3" aria-label="Técnica">
-          {(Object.keys(MEDIUMS) as Medium[]).map(m => {
-            const { label, description, icon: Icon } = MEDIUMS[m];
-            return (
-              <ToggleGroupItem key={m} value={m} className="min-h-32">
-                <Icon className="size-7 text-primary" />
-                <span className="font-semibold">{label}</span>
-                <span className="text-xs text-muted-foreground">{description}</span>
-              </ToggleGroupItem>
-            );
-          })}
-        </ToggleGroup>
-      )}
+      <section className="p-6 rounded-2xl border">
+        <h3 className="text-xl font-semibold mb-4">2. Choose your medium</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {Object.values(Medium).map(m => (
+            <button key={m} onClick={() => setPreferences(p => ({ ...p, medium: m }))} className={cardClass(preferences.medium === m)}>{m}</button>
+          ))}
+        </div>
+      </section>
 
-      {current.key === 'subject' && (
-        <ToggleGroup type="single" value={preferences.subject ?? ''} onValueChange={select('subject')} className="grid-cols-2" aria-label="Tema">
-          {(Object.keys(SUBJECTS) as Subject[]).map(s => {
-            const { label, description, icon: Icon } = SUBJECTS[s];
-            return (
-              <ToggleGroupItem key={s} value={s} className="min-h-32">
-                <Icon className="size-7 text-primary" />
-                <span className="font-semibold">{label}</span>
-                <span className="text-xs text-muted-foreground">{description}</span>
-              </ToggleGroupItem>
-            );
-          })}
-        </ToggleGroup>
-      )}
+      <section className="p-6 rounded-2xl border">
+        <h3 className="text-xl font-semibold mb-4">3. Choose your subject</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {Object.values(Subject).map(s => (
+            <button key={s} onClick={() => setPreferences(p => ({ ...p, subject: s }))} className={cardClass(preferences.subject === s)}>{s}</button>
+          ))}
+        </div>
+      </section>
 
-      {/* En móvil los botones quedan fijos abajo, al alcance del pulgar */}
-      <Card className="fixed inset-x-0 bottom-0 rounded-none border-x-0 border-b-0 py-3 sm:static sm:rounded-xl sm:border sm:py-4">
-        <CardContent className="flex items-center justify-between gap-3 px-4">
-          <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={step === 0}>
-            <ArrowLeft /> Atrás
-          </Button>
-          <Button size="lg" disabled={!value || isAssessing} onClick={() => (isLast ? onComplete() : setStep(s => s + 1))}>
-            {isLast ? 'Crear mi reto' : 'Siguiente'} <ArrowRight />
-          </Button>
-        </CardContent>
-      </Card>
+      <button onClick={onComplete} disabled={!canContinue} className="w-full py-4 bg-art-800 rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
+        {isLoading ? 'Creating your challenge...' : 'Continue'}
+      </button>
     </div>
   );
 };

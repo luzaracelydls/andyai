@@ -72,8 +72,61 @@ Para comprobar que la API responde: http://localhost:8000/health debe devolver `
 ```bash
 cd api && pytest                      # tests de la API
 npm run typecheck --prefix frontend   # tipos de TypeScript
-npm run build --prefix frontend       # build de producción
+VITE_API_URL=https://ejemplo.run.app npm run build --prefix frontend   # build de producción (exige la URL de la API)
 ```
+
+## Deploy en la nube
+
+La API va a **Cloud Run** y el frontend a **Firebase Hosting**. El frontend llama a la API por su URL de Cloud Run (`VITE_API_URL`, fija en el build) y la API solo acepta peticiones de los dominios de Firebase (`ALLOWED_ORIGINS`).
+
+```
+https://<proyecto>.web.app (Firebase Hosting)  ──fetch──▶  https://andy-ai-api-….run.app (Cloud Run)  ──▶  Gemini en Vertex AI
+```
+
+### 1. Preparar el proyecto (una sola vez)
+
+```bash
+gcloud config set project <tu-proyecto>
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com
+
+# Permiso para llamar a Gemini con la cuenta de servicio que usa Cloud Run
+gcloud projects add-iam-policy-binding <tu-proyecto> \
+  --member="serviceAccount:$(gcloud projects describe <tu-proyecto> --format='value(projectNumber)')-compute@developer.gserviceaccount.com" \
+  --role="roles/aiplatform.user"
+```
+
+El proyecto necesita **facturación activada** (Vertex AI la exige).
+
+### 2. Desplegar la API
+
+Desde la raíz:
+
+```bash
+npm run deploy:api -- --max-instances=3 \
+  --set-env-vars "^;^GOOGLE_CLOUD_PROJECT=<tu-proyecto>;GOOGLE_CLOUD_LOCATION=us-central1;ALLOWED_ORIGINS=https://<proyecto-firebase>.web.app,https://<proyecto-firebase>.firebaseapp.com"
+```
+
+- El `^;^` cambia el separador de variables a `;`, porque `ALLOWED_ORIGINS` lleva comas.
+- `gcloud` construye la imagen con `api/Dockerfile` (lo que se sube lo filtra `api/.gcloudignore`) e imprime la **Service URL**. Guárdala.
+- Comprueba que responde: `https://<service-url>/health` → `{"status":"ok"}`.
+
+### 3. Desplegar el frontend
+
+```bash
+cp frontend/.env.production.example frontend/.env.production   # y pon la Service URL en VITE_API_URL
+npx firebase-tools login
+cd frontend && npx firebase-tools use --add && cd ..             # elige tu proyecto de Firebase (solo la primera vez)
+npm run deploy:web
+```
+
+`npm run deploy:web` construye con `VITE_API_URL` y sube `frontend/dist`. Si `VITE_API_URL` falta o apunta a `localhost`, el build se detiene con un aviso. Abre `https://<proyecto-firebase>.web.app`.
+
+### Recomendaciones
+
+- La API queda pública (`--allow-unauthenticated`), así que cualquiera que conozca la URL puede gastar tu cuota de Gemini. Pon un **presupuesto con alertas** en Facturación y limita instancias con `--max-instances`.
+- Si cambias de dominio (o agregas uno propio), actualiza `ALLOWED_ORIGINS` con `gcloud run services update andy-ai-api --region us-central1 --update-env-vars ...`.
+- "Mi progreso" se guarda en el navegador de cada persona; no hay base de datos en el servidor.
+- Logs de la API: `gcloud run services logs read andy-ai-api --region us-central1`.
 
 ## Variables de entorno
 
@@ -97,5 +150,5 @@ Primero abre http://localhost:8000/health: si responde `{"status":"ok"}`, la API
 - **"Tu proyecto de Google Cloud no tiene la facturación activada"**: Vertex AI exige billing. Actívalo en https://console.cloud.google.com/billing y espera unos minutos.
 - **"Faltan credenciales de Google Cloud"**: corre `gcloud auth application-default login`.
 - **"Habilita Vertex AI en tu proyecto"**: `gcloud services enable aiplatform.googleapis.com --project <tu-proyecto>`.
-- **"Falta GOOGLE_CLOUD_PROJECT"**: crea `api/.env` a partir de `api/.env.example` y llena el ID del proyecto.
+- **"Falta GOOGLE_CLOUD_PROJECT"**: en local, crea `api/.env` a partir de `api/.env.example` y llena el ID del proyecto; en Cloud Run, agrégala con `--set-env-vars` o `--update-env-vars`.
 - **"No se pudo generar el reto" / 502**: error inesperado de Gemini; el detalle aparece en la terminal, en las líneas `[api]` después de `Falló /challenge`.

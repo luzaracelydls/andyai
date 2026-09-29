@@ -41,7 +41,8 @@ def describe_setup_error(exc: Exception) -> str | None:
     Devuelve None si el error no es de configuración (se trata como falla genérica).
     """
     if isinstance(exc, KeyError) and exc.args == ("GOOGLE_CLOUD_PROJECT",):
-        return "Falta GOOGLE_CLOUD_PROJECT en api/.env."
+        return ("Falta GOOGLE_CLOUD_PROJECT: ponla en api/.env (local) "
+                "o en las variables del servicio de Cloud Run.")
     if isinstance(exc, (DefaultCredentialsError, RefreshError)):
         return ("Faltan credenciales de Google Cloud o expiraron: "
                 "corre `gcloud auth application-default login`.")

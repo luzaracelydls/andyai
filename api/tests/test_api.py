@@ -1,5 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
+from google.auth.exceptions import DefaultCredentialsError
+from google.genai import errors as genai_errors
 from pydantic import ValidationError
 
 from app import ai
@@ -119,3 +121,84 @@ def test_gemini_respuesta_invalida_devuelve_502(monkeypatch):
         "level": "Newbie", "medium": "Oil", "subject": "Plants",
     })
     assert res.status_code == 502
+
+
+# ---------- Errores de configuración de Google Cloud ----------
+
+RETO_REQUEST = {"level": "Newbie", "medium": "Oil", "subject": "Plants"}
+
+
+def _falla_con(exc):
+    def falla(*args):
+        raise exc
+    return falla
+
+
+def _error_403(reason):
+    return genai_errors.ClientError(403, {"error": {
+        "code": 403, "status": "PERMISSION_DENIED", "message": "denied",
+        "details": [{"@type": "type.googleapis.com/google.rpc.ErrorInfo", "reason": reason}],
+    }})
+
+
+def test_billing_desactivado_devuelve_503_con_mensaje(monkeypatch):
+    monkeypatch.setattr(ai, "generate_challenge", _falla_con(_error_403("BILLING_DISABLED")))
+    res = client.post("/challenge", json=RETO_REQUEST)
+    assert res.status_code == 503
+    assert "facturación" in res.json()["detail"]
+
+
+def test_vertex_sin_permisos_devuelve_503(monkeypatch):
+    monkeypatch.setattr(ai, "generate_challenge", _falla_con(_error_403("SERVICE_DISABLED")))
+    res = client.post("/challenge", json=RETO_REQUEST)
+    assert res.status_code == 503
+    assert "Vertex AI" in res.json()["detail"]
+
+
+def test_sin_credenciales_devuelve_503(monkeypatch):
+    monkeypatch.setattr(ai, "assess_skill_level", _falla_con(DefaultCredentialsError("no ADC")))
+    res = client.post("/assess", json=IMAGEN)
+    assert res.status_code == 503
+    assert "gcloud auth application-default login" in res.json()["detail"]
+
+
+def test_sin_proyecto_devuelve_503(monkeypatch):
+    monkeypatch.setattr(ai, "evaluate_artwork", _falla_con(KeyError("GOOGLE_CLOUD_PROJECT")))
+    res = client.post("/evaluate", json={
+        **IMAGEN, "challenge": RETO, "level": "Newbie", "medium": "Oil",
+    })
+    assert res.status_code == 503
+    assert "GOOGLE_CLOUD_PROJECT" in res.json()["detail"]
+
+
+def test_error_desconocido_sigue_siendo_502(monkeypatch):
+    monkeypatch.setattr(ai, "generate_challenge", _falla_con(RuntimeError("otra cosa")))
+    res = client.post("/challenge", json=RETO_REQUEST)
+    assert res.status_code == 502
+    assert res.json()["detail"] == "No se pudo generar el reto"
+
+
+def test_cors_permite_127_0_0_1():
+    res = client.options("/challenge", headers={
+        "Origin": "http://127.0.0.1:5173",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type",
+    })
+    assert res.status_code == 200
+    assert res.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+
+
+def test_allowed_origins_agrega_alias_de_localhost(monkeypatch):
+    from app.main import allowed_origins
+    monkeypatch.setenv("ALLOWED_ORIGINS", "http://localhost:5173, https://andy.example.com")
+    assert allowed_origins() == [
+        "http://localhost:5173", "https://andy.example.com", "http://127.0.0.1:5173",
+    ]
+
+
+def test_proyecto_vacio_en_env_devuelve_503(monkeypatch):
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "")
+    ai.get_client.cache_clear()
+    res = client.post("/challenge", json=RETO_REQUEST)
+    assert res.status_code == 503
+    assert "GOOGLE_CLOUD_PROJECT" in res.json()["detail"]

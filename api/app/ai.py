@@ -4,7 +4,8 @@ import os
 from functools import lru_cache
 
 from google import genai
-from google.genai import types
+from google.auth.exceptions import DefaultCredentialsError, RefreshError
+from google.genai import errors, types
 
 from app.schemas import (
     Challenge, ChallengeResponse, Evaluation, Medium, SkillLevel, Subject,
@@ -16,11 +17,40 @@ MODEL_NAME = "gemini-2.5-flash"
 @lru_cache
 def get_client() -> genai.Client:
     # Se crea una sola vez y solo cuando se necesita (útil para los tests)
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT", "").strip()
+    if not project:
+        # Ausente o vacía (p. ej. .env copiado sin llenar): describe_setup_error la reporta
+        raise KeyError("GOOGLE_CLOUD_PROJECT")
     return genai.Client(
         vertexai=True,
-        project=os.environ["GOOGLE_CLOUD_PROJECT"],
+        project=project,
         location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
     )
+
+
+def _error_reasons(exc: errors.APIError) -> set[str]:
+    # Vertex AI manda el motivo en error.details[].reason (p. ej. BILLING_DISABLED)
+    details = exc.details if isinstance(exc.details, dict) else {}
+    items = details.get("error", {}).get("details", [])
+    return {d.get("reason") for d in items if isinstance(d, dict) and d.get("reason")}
+
+
+def describe_setup_error(exc: Exception) -> str | None:
+    """Traduce errores de configuración de Google Cloud a un mensaje claro.
+
+    Devuelve None si el error no es de configuración (se trata como falla genérica).
+    """
+    if isinstance(exc, KeyError) and exc.args == ("GOOGLE_CLOUD_PROJECT",):
+        return "Falta GOOGLE_CLOUD_PROJECT en api/.env."
+    if isinstance(exc, (DefaultCredentialsError, RefreshError)):
+        return ("Faltan credenciales de Google Cloud o expiraron: "
+                "corre `gcloud auth application-default login`.")
+    if isinstance(exc, errors.ClientError) and exc.code == 403:
+        reasons = _error_reasons(exc)
+        if "BILLING_DISABLED" in reasons:
+            return "Tu proyecto de Google Cloud no tiene la facturación activada."
+        return "Habilita Vertex AI en tu proyecto de Google Cloud o revisa los permisos de tu cuenta."
+    return None
 
 
 class InvalidImageError(ValueError):

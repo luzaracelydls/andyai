@@ -12,7 +12,11 @@ async function post<T>(path: string, body: unknown, fallbackError: string): Prom
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error('No se pudo conectar con la API. ¿Está corriendo en ' + API_URL + '?');
+    // fetch falla igual si la API está apagada o si el navegador la bloquea por CORS
+    throw new Error(
+      `No se pudo conectar con la API en ${API_URL}. Revisa que esté corriendo (abre ${API_URL}/health) ` +
+      `y que la página esté abierta en http://localhost:5173.`
+    );
   }
   if (!res.ok) {
     const data = await res.json().catch(() => null);

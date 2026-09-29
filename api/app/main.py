@@ -17,13 +17,30 @@ logger = logging.getLogger("andy_ai")
 
 app = FastAPI(title="Andy AI API")
 
+def allowed_origins() -> list[str]:
+    origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").split(",") if o.strip()]
+    # localhost y 127.0.0.1 son la misma máquina, pero el navegador los trata como orígenes distintos
+    aliases = [o.replace("//localhost", "//127.0.0.1") for o in origins]
+    aliases += [o.replace("//127.0.0.1", "//localhost") for o in origins]
+    return list(dict.fromkeys(origins + aliases))
+
+
 app.add_middleware(
     CORSMiddleware,
     # Solo tu frontend, nunca "*" en producción
-    allow_origins=os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").split(","),
+    allow_origins=allowed_origins(),
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
+def _upstream_error(exc: Exception, endpoint: str, generic_detail: str) -> HTTPException:
+    logger.exception("Falló %s", endpoint)
+    setup_problem = ai.describe_setup_error(exc)
+    if setup_problem:
+        # Problema de configuración de Google Cloud: el usuario puede arreglarlo
+        return HTTPException(status_code=503, detail=setup_problem)
+    return HTTPException(status_code=502, detail=generic_detail)
 
 
 @app.get("/health")
@@ -37,9 +54,8 @@ def assess(body: ImageInput):
         level = ai.assess_skill_level(body.image_base64, body.mime_type)
     except ai.InvalidImageError:
         raise HTTPException(status_code=400, detail="La imagen no es válida")
-    except Exception:
-        logger.exception("Falló /assess")
-        raise HTTPException(status_code=502, detail="No se pudo analizar la imagen")
+    except Exception as exc:
+        raise _upstream_error(exc, "/assess", "No se pudo analizar la imagen")
     return AssessResponse(level=level)
 
 
@@ -47,9 +63,8 @@ def assess(body: ImageInput):
 def challenge(body: ChallengeRequest):
     try:
         return ai.generate_challenge(body.level, body.medium, body.subject)
-    except Exception:
-        logger.exception("Falló /challenge")
-        raise HTTPException(status_code=502, detail="No se pudo generar el reto")
+    except Exception as exc:
+        raise _upstream_error(exc, "/challenge", "No se pudo generar el reto")
 
 
 @app.post("/evaluate", response_model=Evaluation)
@@ -60,6 +75,5 @@ def evaluate(body: EvaluateRequest):
         )
     except ai.InvalidImageError:
         raise HTTPException(status_code=400, detail="La imagen no es válida")
-    except Exception:
-        logger.exception("Falló /evaluate")
-        raise HTTPException(status_code=502, detail="No se pudo evaluar la obra")
+    except Exception as exc:
+        raise _upstream_error(exc, "/evaluate", "No se pudo evaluar la obra")

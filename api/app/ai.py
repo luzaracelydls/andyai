@@ -87,27 +87,55 @@ def assess_skill_level(image_base64: str, mime_type: str) -> SkillLevel:
     return SkillLevel.intermediate if "Intermediate" in text else SkillLevel.newbie
 
 
-def generate_challenge(level: SkillLevel, medium: Medium, subject: Subject) -> ChallengeResponse:
-    prompt = f"""
-Use this art knowledge:
-- Rule of thirds improves composition
-- Human proportions: 7-8 heads tall
-- Light must be consistent
-- Avoid tangents in composition
+# Etiquetas en español para que el prompt no mezcle idiomas (los enums quedan en inglés para la API)
+LEVEL_ES = {SkillLevel.newbie: "principiante", SkillLevel.intermediate: "intermedio"}
+MEDIUM_ES = {
+    Medium.acrylic: "acrílico",
+    Medium.pastels: "pastel seco",
+    Medium.oil_pastels: "pastel al óleo",
+    Medium.watercolor: "acuarela",
+    Medium.oil: "óleo",
+}
+SUBJECT_ES = {
+    Subject.single_objects: "objetos (bodegón)",
+    Subject.human_anatomy: "figura humana",
+    Subject.animals: "animales",
+    Subject.plants: "plantas",
+}
 
-Create a {level.value} level challenge for {medium.value} painting of {subject.value}.
-Include 2 YouTube search queries related to the challenge topic. For example, if the
-challenge is about drawing still life with basic forms, a query could be
-"How to Draw Basic Shapes". Also include a complexity label (Principiante, Moderado, Avanzado).
-Write every text field in Spanish; the YouTube queries may be in English if that finds better videos."""
+# Gemini tiende a contestar en el idioma del prompt; la instrucción de sistema lo fija en español
+SYSTEM_INSTRUCTION = (
+    "Eres Andy, una mentora de pintura para personas que están aprendiendo. "
+    "Responde SIEMPRE en español neutro, en todos los campos de texto del JSON, "
+    "aunque los nombres de los campos estén en inglés. Usa un tono cálido, claro y alentador."
+)
+
+
+def _config(schema) -> types.GenerateContentConfig:
+    return types.GenerateContentConfig(
+        system_instruction=SYSTEM_INSTRUCTION,
+        response_mime_type="application/json",
+        response_schema=schema,
+    )
+
+
+def generate_challenge(level: SkillLevel, medium: Medium, subject: Subject) -> ChallengeResponse:
+    prompt = f"""Usa estos principios de arte:
+- La regla de los tercios mejora la composición
+- Proporciones humanas: 7 a 8 cabezas de alto
+- La luz debe ser consistente
+- Evita tangentes en la composición
+
+Crea un reto de pintura para una persona de nivel {LEVEL_ES[level]}, con la técnica {MEDIUM_ES[medium]} y el tema {SUBJECT_ES[subject]}.
+Incluye 2 búsquedas de YouTube relacionadas con el tema del reto (por ejemplo, para un bodegón
+con formas básicas: "cómo dibujar formas básicas"); pueden ir en inglés si así se encuentran mejores videos.
+La complejidad debe ser exactamente una de estas: Principiante, Intermedio o Avanzado.
+Escribe el título, la descripción, los puntos a trabajar y los consejos en español."""
 
     response = get_client().models.generate_content(
         model=MODEL_NAME,
         contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=ChallengeResponse,   # ← tu modelo de Pydantic
-        ),
+        config=_config(ChallengeResponse),
     )
     return _parsed(response)
 
@@ -116,21 +144,17 @@ def evaluate_artwork(
     image_base64: str, mime_type: str, challenge: Challenge,
     level: SkillLevel, medium: Medium,
 ) -> Evaluation:
-    prompt = f"""Evaluate this {medium.value} artwork ({level.value} level).
-Challenge: {challenge.title}.
-For each point (Proportions, Composition, Color Theory, Volume, Lighting/Shadow),
-start with 👍, 👏, or 🏆. Also give each of those five points an integer score
-from 0 to 5 in "scores". Provide an overall rating 0-5.
-Answer true or false: does the user meet the challenge expectation?
-Write all feedback in Spanish, in a warm and encouraging tone."""
+    prompt = f"""Evalúa esta obra en {MEDIUM_ES[medium]} de una persona de nivel {LEVEL_ES[level]}.
+El reto era: "{challenge.title}".
+Comenta cada criterio (proporciones, composición, teoría del color, volumen y luz y sombra)
+empezando con 👍, 👏 o 🏆, y dale a cada uno un puntaje entero de 0 a 5 en "scores".
+Da una calificación general de 0 a 5 y responde true o false: ¿la obra cumple el reto?
+Escribe toda la retroalimentación en español."""
 
     image = _image_part(image_base64, mime_type)  # valida antes de llamar a Gemini
     response = get_client().models.generate_content(
         model=MODEL_NAME,
         contents=[image, prompt],
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=Evaluation,
-        ),
+        config=_config(Evaluation),
     )
     return _parsed(response)

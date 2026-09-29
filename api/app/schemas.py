@@ -41,11 +41,15 @@ class ChallengeRequest(BaseModel):
     subject: Subject
 
 
+# Las descripciones viajan en el response_schema de Gemini y refuerzan el idioma campo por campo
+ES = "en español"
+
+
 class Challenge(BaseModel):
-    title: str
-    description: str
-    focusAreas: list[str]
-    tips: list[str]
+    title: str = Field(description=f"Título corto y motivador del reto, {ES}")
+    description: str = Field(description=f"Qué hay que pintar y por qué, {ES}")
+    focusAreas: list[str] = Field(description=f"Puntos concretos a trabajar, {ES}")
+    tips: list[str] = Field(description=f"Consejos prácticos, {ES}")
 
 
 class EvaluateRequest(ImageInput):
@@ -61,8 +65,8 @@ class AssessResponse(BaseModel):
 
 
 class ChallengeResponse(Challenge):
-    youtubeQueries: list[str]
-    complexity: str
+    youtubeQueries: list[str] = Field(description="Búsquedas para YouTube (español o inglés)")
+    complexity: str = Field(description="Exactamente una de: Principiante, Intermedio, Avanzado")
 
 
 class CriterionScores(BaseModel):
@@ -74,12 +78,12 @@ class CriterionScores(BaseModel):
 
 
 class Evaluation(BaseModel):
-    proportions: str
-    composition: str
-    colorTheory: str
-    volume: str
-    lightingShadow: str
-    overallEncouragement: str
+    proportions: str = Field(description=f"Comentario sobre las proporciones, {ES}")
+    composition: str = Field(description=f"Comentario sobre la composición, {ES}")
+    colorTheory: str = Field(description=f"Comentario sobre la teoría del color, {ES}")
+    volume: str = Field(description=f"Comentario sobre el volumen y la forma, {ES}")
+    lightingShadow: str = Field(description=f"Comentario sobre la luz y la sombra, {ES}")
+    overallEncouragement: str = Field(description=f"Mensaje final de ánimo, {ES}")
     rating: int = Field(ge=0, le=5)
     scores: CriterionScores
     meetsChallenge: bool

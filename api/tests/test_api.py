@@ -229,3 +229,57 @@ def test_cors_para_firebase_hosting(monkeypatch):
     finally:
         monkeypatch.delenv("ALLOWED_ORIGINS")
         importlib.reload(main_module)
+
+
+# ---------- Idioma: todo lo que genera Gemini debe venir en español ----------
+
+class _ClienteQueCaptura:
+    """Cliente falso de Gemini: guarda los argumentos y devuelve una respuesta válida."""
+
+    def __init__(self, parsed):
+        self.llamadas = []
+        cliente = self
+
+        class _Models:
+            @staticmethod
+            def generate_content(**kwargs):
+                cliente.llamadas.append(kwargs)
+                return type("Respuesta", (), {"parsed": parsed, "text": ""})()
+
+        self.models = _Models()
+
+
+def _texto_del_prompt(contents):
+    return contents if isinstance(contents, str) else next(c for c in contents if isinstance(c, str))
+
+
+def test_reto_se_pide_en_espanol(monkeypatch):
+    reto = ChallengeResponse(**RETO, youtubeQueries=["q"], complexity="Principiante")
+    cliente = _ClienteQueCaptura(reto)
+    monkeypatch.setattr(ai, "get_client", lambda: cliente)
+
+    res = client.post("/challenge", json={"level": "Newbie", "medium": "Watercolor", "subject": "Animals"})
+
+    assert res.status_code == 200
+    llamada = cliente.llamadas[0]
+    config = llamada["config"]
+    assert "español" in config.system_instruction
+    prompt = _texto_del_prompt(llamada["contents"])
+    assert "acuarela" in prompt and "principiante" in prompt and "animales" in prompt
+    assert "Watercolor" not in prompt and "Newbie" not in prompt
+    # Las descripciones del esquema piden español campo por campo
+    assert "en español" in config.response_schema.model_fields["title"].description
+
+
+def test_evaluacion_se_pide_en_espanol(monkeypatch):
+    cliente = _ClienteQueCaptura(Evaluation(**EVALUACION))
+    monkeypatch.setattr(ai, "get_client", lambda: cliente)
+
+    res = client.post("/evaluate", json={**IMAGEN, "challenge": RETO, "level": "Intermediate", "medium": "Oil"})
+
+    assert res.status_code == 200
+    llamada = cliente.llamadas[0]
+    assert "español" in llamada["config"].system_instruction
+    prompt = _texto_del_prompt(llamada["contents"])
+    assert "óleo" in prompt and "intermedio" in prompt
+    assert "en español" in llamada["config"].response_schema.model_fields["proportions"].description

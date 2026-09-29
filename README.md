@@ -9,6 +9,8 @@ Andy AI ayuda a personas que aprenden a dibujar y pintar:
 3. Evalúa la foto de tu obra en proporciones, composición, color, volumen y luz, con una calificación de 0 a 5 y un puntaje por criterio.
 4. Guarda tu historial en **Mi progreso**: galería de obras, racha de días y evolución de tus calificaciones (solo en tu navegador).
 
+La interfaz y el contenido que genera Gemini están en **español o inglés**: el botón de idioma de la barra superior cambia ambos y la elección se recuerda en el navegador. Los textos de la interfaz están en `frontend/lib/copy.ts` y los prompts por idioma en `api/app/ai.py`.
+
 ## Arquitectura
 
 ```

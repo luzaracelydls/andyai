@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from app import ai
 from app.main import app
-from app.schemas import ChallengeResponse, Evaluation, SkillLevel
+from app.schemas import ChallengeRequest, ChallengeResponse, Evaluation, Language, SkillLevel
 
 client = TestClient(app)
 
@@ -77,7 +77,7 @@ def test_assess_base64_invalido_devuelve_400():
 
 def test_challenge_devuelve_reto(monkeypatch):
     reto = ChallengeResponse(**RETO, youtubeQueries=["How to paint a sphere"], complexity="Beginner")
-    monkeypatch.setattr(ai, "generate_challenge", lambda level, medium, subject: reto)
+    monkeypatch.setattr(ai, "generate_challenge", lambda level, medium, subject, language: reto)
     res = client.post("/challenge", json={
         "level": "Newbie", "medium": "Watercolor", "subject": "Single Objects",
     })
@@ -267,8 +267,8 @@ def test_reto_se_pide_en_espanol(monkeypatch):
     prompt = _texto_del_prompt(llamada["contents"])
     assert "acuarela" in prompt and "principiante" in prompt and "animales" in prompt
     assert "Watercolor" not in prompt and "Newbie" not in prompt
-    # Las descripciones del esquema piden español campo por campo
-    assert "en español" in config.response_schema.model_fields["title"].description
+    # Las descripciones del esquema remiten, campo por campo, al idioma de la instrucción
+    assert "language required" in config.response_schema.model_fields["title"].description
 
 
 def test_evaluacion_se_pide_en_espanol(monkeypatch):
@@ -282,4 +282,61 @@ def test_evaluacion_se_pide_en_espanol(monkeypatch):
     assert "español" in llamada["config"].system_instruction
     prompt = _texto_del_prompt(llamada["contents"])
     assert "óleo" in prompt and "intermedio" in prompt
-    assert "en español" in llamada["config"].response_schema.model_fields["proportions"].description
+    assert "language required" in llamada["config"].response_schema.model_fields["proportions"].description
+
+
+def test_reto_en_ingles(monkeypatch):
+    reto = ChallengeResponse(**RETO, youtubeQueries=["q"], complexity="Beginner")
+    cliente = _ClienteQueCaptura(reto)
+    monkeypatch.setattr(ai, "get_client", lambda: cliente)
+
+    res = client.post("/challenge", json={
+        "level": "Newbie", "medium": "Watercolor", "subject": "Animals", "language": "en",
+    })
+
+    assert res.status_code == 200
+    llamada = cliente.llamadas[0]
+    assert "English" in llamada["config"].system_instruction
+    assert "español" not in llamada["config"].system_instruction
+    prompt = _texto_del_prompt(llamada["contents"])
+    assert "watercolor" in prompt and "beginner" in prompt and "animals" in prompt
+    assert "acuarela" not in prompt
+
+
+def test_evaluacion_en_ingles(monkeypatch):
+    cliente = _ClienteQueCaptura(Evaluation(**EVALUACION))
+    monkeypatch.setattr(ai, "get_client", lambda: cliente)
+
+    res = client.post("/evaluate", json={
+        **IMAGEN, "challenge": RETO, "level": "Intermediate", "medium": "Oil", "language": "en",
+    })
+
+    assert res.status_code == 200
+    llamada = cliente.llamadas[0]
+    assert "English" in llamada["config"].system_instruction
+    assert "Evaluate this oil artwork by an artist at the intermediate level" in _texto_del_prompt(llamada["contents"])
+
+
+def test_idioma_por_defecto_es_espanol():
+    assert ChallengeRequest(level="Newbie", medium="Oil", subject="Plants").language == Language.es
+
+
+def test_idioma_invalido_se_rechaza():
+    res = client.post("/challenge", json={**RETO_REQUEST, "language": "fr"})
+    assert res.status_code == 422
+
+
+def test_errores_en_ingles(monkeypatch):
+    monkeypatch.setattr(ai, "generate_challenge", _falla_con(_error_403("BILLING_DISABLED")))
+    res = client.post("/challenge", json={**RETO_REQUEST, "language": "en"})
+    assert res.status_code == 503
+    assert res.json()["detail"] == "Your Google Cloud project does not have billing enabled."
+
+    monkeypatch.setattr(ai, "generate_challenge", _falla_con(RuntimeError("otra cosa")))
+    res = client.post("/challenge", json={**RETO_REQUEST, "language": "en"})
+    assert res.status_code == 502
+    assert res.json()["detail"] == "Could not create the challenge"
+
+    res = client.post("/assess", json={"image_base64": "no es base64!", "mime_type": "image/png", "language": "en"})
+    assert res.status_code == 400
+    assert res.json()["detail"] == "The image is not valid"

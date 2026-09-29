@@ -2,12 +2,13 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LOADING_MESSAGES } from '@/lib/copy';
+import { useI18n } from '@/lib/i18n';
 import { useRotatingMessage } from '@/lib/useRotatingMessage';
 
 // Esqueleto con la forma del reto mientras Gemini lo genera
 export const ChallengeSkeleton: React.FC = () => {
-  const message = useRotatingMessage(LOADING_MESSAGES.challenge, true);
+  const { t } = useI18n();
+  const message = useRotatingMessage(t.loading.challenge, true);
   return (
     <div className="mx-auto max-w-4xl space-y-6" aria-busy="true">
       <p role="status" className="flex items-center justify-center gap-2 text-lg font-medium text-primary">

@@ -10,8 +10,8 @@ import { EvaluationReport } from './components/EvaluationReport.tsx';
 import { Toaster } from './components/ui/sonner.tsx';
 import { generateChallenge, evaluateArtwork, assessSkillLevel } from './services/api.ts';
 import { AppState, UserPreferences, ChallengeResponse, Evaluation } from './types.ts';
-import { LEVELS } from './lib/copy.ts';
-import { prepareImage, makeThumbnail, type PreparedImage } from './lib/image.ts';
+import { useI18n } from './lib/i18n.tsx';
+import { prepareImage, makeThumbnail, ImageReadError, type PreparedImage } from './lib/image.ts';
 import { addToHistory, loadHistory, type HistoryEntry } from './lib/history.ts';
 
 // Recharts solo se descarga al abrir "Mi progreso"
@@ -22,6 +22,7 @@ const EMPTY_PREFERENCES: UserPreferences = { level: null, medium: null, subject:
 type Pending = 'assess' | 'challenge' | 'evaluate' | null;
 
 const App: React.FC = () => {
+  const { t, lang } = useI18n();
   const [appState, setAppState] = useState<AppState>('setup');
   const [preferences, setPreferences] = useState<UserPreferences>(EMPTY_PREFERENCES);
   const [currentChallenge, setCurrentChallenge] = useState<ChallengeResponse | null>(null);
@@ -43,7 +44,8 @@ const App: React.FC = () => {
     try {
       await action();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ocurrió un error inesperado');
+      if (e instanceof ImageReadError) setError(t.errors.imageRead);
+      else setError(e instanceof Error ? e.message : t.errors.unexpected);
     } finally {
       setPending(null);
     }
@@ -51,22 +53,22 @@ const App: React.FC = () => {
 
   const handleAssess = (file: File) => run('assess', async () => {
     const image = await prepareImage(file);
-    const level = await assessSkillLevel(image.base64, image.mimeType);
+    const level = await assessSkillLevel(image.base64, image.mimeType, lang);
     setPreferences(p => ({ ...p, level }));
-    toast.success(`Andy estima que tu nivel es: ${LEVELS[level].label}`);
+    toast.success(t.toasts.levelEstimated(t.levels[level].label));
   });
 
   const handleGenerate = () => run('challenge', async () => {
     const { level, medium, subject } = preferences;
-    if (!level || !medium || !subject) throw new Error('Elige nivel, técnica y tema para continuar');
-    setCurrentChallenge(await generateChallenge(level, medium, subject));
+    if (!level || !medium || !subject) throw new Error(t.errors.missingChoices);
+    setCurrentChallenge(await generateChallenge(level, medium, subject, lang));
     setAppState('challenge');
   });
 
   const handleEvaluate = (image: PreparedImage) => run('evaluate', async () => {
     const { level, medium, subject } = preferences;
-    if (!currentChallenge || !level || !medium || !subject) throw new Error('Primero genera un reto');
-    const result = await evaluateArtwork(image.base64, image.mimeType, currentChallenge, level, medium);
+    if (!currentChallenge || !level || !medium || !subject) throw new Error(t.errors.noChallenge);
+    const result = await evaluateArtwork(image.base64, image.mimeType, currentChallenge, level, medium, lang);
     setEvaluation(result);
     setUploadedImageUrl(image.dataUrl);
     setAppState('evaluation');
@@ -79,7 +81,7 @@ const App: React.FC = () => {
       meetsChallenge: result.meetsChallenge,
       thumbnail: await makeThumbnail(image.dataUrl),
     }));
-    toast.success('Guardada en tu progreso');
+    toast.success(t.toasts.saved);
   });
 
   const handleRestart = () => {
@@ -104,7 +106,7 @@ const App: React.FC = () => {
         {error && (
           <div role="alert" className="mx-auto mb-6 flex max-w-3xl items-start justify-between gap-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-destructive">
             <p>{error}</p>
-            <button onClick={() => setError(null)} aria-label="Cerrar" className="shrink-0"><X className="size-5" /></button>
+            <button onClick={() => setError(null)} aria-label={t.errors.close} className="shrink-0"><X className="size-5" /></button>
           </div>
         )}
 
@@ -128,7 +130,7 @@ const App: React.FC = () => {
           />
         )}
         {appState === 'history' && (
-          <Suspense fallback={<p role="status" className="text-center text-muted-foreground">Cargando tu progreso…</p>}>
+          <Suspense fallback={<p role="status" className="text-center text-muted-foreground">{t.progress.loading}</p>}>
             <ProgressView history={history} onStart={handleRestart} />
           </Suspense>
         )}

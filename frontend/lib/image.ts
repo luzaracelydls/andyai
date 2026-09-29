@@ -1,6 +1,9 @@
 // Reduce y comprime imágenes en el navegador antes de mandarlas a la API
 // (la API acepta ~4 MB) y genera miniaturas para el historial.
 
+// Error al leer o procesar la imagen en el navegador; la interfaz muestra su propio mensaje traducido
+export class ImageReadError extends Error {}
+
 export interface PreparedImage {
   base64: string;
   mimeType: 'image/jpeg';
@@ -11,7 +14,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('No se pudo leer la imagen'));
+    img.onerror = () => reject(new ImageReadError('image-read'));
     img.src = src;
   });
 }
@@ -22,7 +25,7 @@ function drawScaled(img: HTMLImageElement, maxSide: number, quality: number): st
   canvas.width = Math.round(img.naturalWidth * scale);
   canvas.height = Math.round(img.naturalHeight * scale);
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Tu navegador no permite procesar imágenes');
+  if (!ctx) throw new ImageReadError('canvas-unavailable');
   ctx.fillStyle = '#ffffff'; // fondo blanco para PNG con transparencia
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Gauge, Lightbulb, RefreshCw, Target, CirclePlay } from 'lucide-react';
 import { ChallengeResponse, Medium, Subject } from '../types.ts';
-import { MEDIUMS, SUBJECTS } from '@/lib/copy';
+import { useI18n } from '@/lib/i18n';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ const youtubeSearchUrl = (query: string) =>
   `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 
 export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, medium, subject, onAccept, onRegenerate, isLoading }) => {
+  const { t } = useI18n();
   const [done, setDone] = useState<Set<number>>(new Set());
   const toggle = (i: number) =>
     setDone(prev => {
@@ -35,10 +36,10 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, medium,
         <div className="bg-gradient-to-br from-fuchsia-600 via-purple-600 to-indigo-600 px-6 py-10 text-center text-white sm:px-12">
           <div className="mb-4 flex flex-wrap justify-center gap-2">
             <Badge className="bg-white/20 text-white"><Gauge /> {challenge.complexity}</Badge>
-            <Badge className="bg-white/20 text-white">{MEDIUMS[medium].label}</Badge>
-            <Badge className="bg-white/20 text-white">{SUBJECTS[subject].label}</Badge>
+            <Badge className="bg-white/20 text-white">{t.mediums[medium].label}</Badge>
+            <Badge className="bg-white/20 text-white">{t.subjects[subject].label}</Badge>
           </div>
-          <p className="text-sm uppercase tracking-widest text-white/80">Tu misión</p>
+          <p className="text-sm uppercase tracking-widest text-white/80">{t.challenge.mission}</p>
           <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{challenge.title}</h1>
           <p className="mx-auto mt-4 max-w-2xl text-white/90">{challenge.description}</p>
         </div>
@@ -46,10 +47,10 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, medium,
         <CardContent className="grid gap-8 md:grid-cols-2">
           <section aria-labelledby="focus-title" className="space-y-3">
             <h2 id="focus-title" className="flex items-center gap-2 text-xl font-semibold">
-              <Target className="size-5 text-primary" /> Puntos a trabajar
+              <Target className="size-5 text-primary" /> {t.challenge.focusTitle}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Márcalos mientras pintas · {done.size} de {challenge.focusAreas.length}
+              {t.challenge.focusProgress(done.size, challenge.focusAreas.length)}
             </p>
             <ul className="space-y-2">
               {challenge.focusAreas.map((area, i) => (
@@ -65,12 +66,12 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, medium,
 
           <section aria-labelledby="tips-title" className="space-y-3">
             <h2 id="tips-title" className="flex items-center gap-2 text-xl font-semibold">
-              <Lightbulb className="size-5 text-warning" /> Consejos
+              <Lightbulb className="size-5 text-warning" /> {t.challenge.tipsTitle}
             </h2>
             <Accordion type="single" collapsible defaultValue="tip-0" className="rounded-lg border px-4">
               {challenge.tips.map((tip, i) => (
                 <AccordionItem key={i} value={`tip-${i}`}>
-                  <AccordionTrigger>Consejo {i + 1}</AccordionTrigger>
+                  <AccordionTrigger>{t.challenge.tip(i + 1)}</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">{tip}</AccordionContent>
                 </AccordionItem>
               ))}
@@ -80,7 +81,7 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, medium,
       </Card>
 
       <section aria-labelledby="resources-title" className="space-y-3">
-        <h2 id="resources-title" className="text-xl font-semibold">Aprende antes de empezar</h2>
+        <h2 id="resources-title" className="text-xl font-semibold">{t.challenge.resourcesTitle}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {challenge.youtubeQueries.map((q, i) => (
             <a key={i} href={youtubeSearchUrl(q)} target="_blank" rel="noopener noreferrer" className="group rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
@@ -90,7 +91,7 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, medium,
                     <CirclePlay className="size-5" />
                   </span>
                   <CardTitle className="leading-snug">{q}</CardTitle>
-                  <CardDescription>Buscar videos en YouTube ↗</CardDescription>
+                  <CardDescription>{t.challenge.searchYoutube}</CardDescription>
                 </CardHeader>
               </Card>
             </a>
@@ -100,10 +101,10 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({ challenge, medium,
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
         <Button variant="outline" onClick={onRegenerate} disabled={isLoading}>
-          <RefreshCw className={isLoading ? 'animate-spin' : ''} /> Otro reto
+          <RefreshCw className={isLoading ? 'animate-spin' : ''} /> {t.challenge.another}
         </Button>
         <Button size="lg" onClick={onAccept} disabled={isLoading}>
-          ¡Terminé! Subir mi obra <ArrowRight />
+          {t.challenge.done} <ArrowRight />
         </Button>
       </div>
     </div>

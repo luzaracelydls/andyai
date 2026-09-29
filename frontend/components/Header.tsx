@@ -1,23 +1,30 @@
 import React from 'react';
-import { Palette } from 'lucide-react';
+import { ChartLine, Palette, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export const Header: React.FC = () => {
-  return (
-    <header className="bg-white/80 backdrop-blur-md border-b border-art-200 sticky top-0 z-10">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-art-800 p-2 rounded-lg">
-            <Palette className="w-6 h-6 text-art-50" />
-          </div>
-          
-          <h2 className="font-serif text-xl font-bold text-art-900 tracking-tight">
-            Andy AI
-          </h2>
-        </div>
-        <nav className="hidden sm:block">
-          
-        </nav>
-      </div>
-    </header>
-  );
-};
+interface HeaderProps {
+  onHome: () => void;
+  onProgress: () => void;
+  progressActive: boolean;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onHome, onProgress, progressActive }) => (
+  <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-md">
+    <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+      <button onClick={onHome} className="flex items-center gap-2 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+        <span className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-600 to-purple-600 text-white">
+          <Palette className="size-5" />
+        </span>
+        <span className="font-serif text-lg font-bold">Andy AI</span>
+      </button>
+      <nav className="flex items-center gap-1">
+        <Button variant="ghost" size="sm" onClick={onHome} aria-label="Nuevo reto">
+          <Plus /> <span className="hidden sm:inline">Nuevo reto</span>
+        </Button>
+        <Button variant={progressActive ? 'secondary' : 'ghost'} size="sm" onClick={onProgress} aria-current={progressActive ? 'page' : undefined}>
+          <ChartLine /> Mi progreso
+        </Button>
+      </nav>
+    </div>
+  </header>
+);

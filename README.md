@@ -4,16 +4,19 @@ Andy AI ayuda a personas que aprenden a dibujar y pintar:
 
 1. Detecta tu nivel (lo eliges o subes una obra para que la IA lo estime).
 2. Genera un reto según tu nivel, técnica (acuarela, óleo, pasteles…) y tema, con búsquedas de YouTube para aprender.
-3. Evalúa la foto de tu obra en proporciones, composición, color, volumen y luz, con una calificación de 0 a 5.
+3. Evalúa la foto de tu obra en proporciones, composición, color, volumen y luz, con una calificación de 0 a 5 y un puntaje por criterio.
+4. Guarda tu historial en **Mi progreso**: galería de obras, racha de días y evolución de tus calificaciones (solo en tu navegador).
 
 ## Arquitectura
 
 ```
-React + Vite (frontend/)  ──fetch──▶  FastAPI (api/)  ──▶  Gemini en Vertex AI
-       :5173                              :8000
+React + Vite + Tailwind v4 + shadcn/ui (frontend/)  ──fetch──▶  FastAPI (api/)  ──▶  Gemini en Vertex AI
+                    :5173                                          :8000
 ```
 
 Las credenciales de Google Cloud viven solo en la API; el navegador nunca habla directo con Gemini.
+
+Los componentes de interfaz están en `frontend/components/ui/` (shadcn/ui, sobre Radix) y los colores y tipografías en los tokens de `frontend/styles.css`. Para agregar otro componente: `npx shadcn@latest add <nombre>` desde `frontend/`.
 
 ## Requisitos
 
